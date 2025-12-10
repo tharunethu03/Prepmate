@@ -1,0 +1,1 @@
+export const avatars = Array.from({ length: 22 }, (_, i) => `/profile-setup/avatar${i + 1}.png`);

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
-
+import "../globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -20,10 +19,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="">
-      <body
-        className={`${inter.variable} antialiased`}
-      >
-        {children}
+      <body className={`${inter.variable} antialiased`}>
+        <div className="flex flex-col justify-evenly items-center h-screen p-10">
+          {children}
+          <p className="text-xs text-tertiary align-bottom items-baseline p-5">
+            Version 1.0.0 © 2025 PREPMATE
+          </p>
+        </div>
       </body>
     </html>
   );
