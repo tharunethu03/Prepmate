@@ -14,7 +14,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const page = () => {
   const [selectedAvatar, setSelectedAvatar] = useState(avatars[0]);
