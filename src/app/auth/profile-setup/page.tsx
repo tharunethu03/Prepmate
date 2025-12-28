@@ -8,6 +8,13 @@ import { Dropdown } from "@/components/ui/dropdown";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { CircleQuestionMark, FileUser, Github, Linkedin } from "lucide-react";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { useRouter } from "next/router";
 
 const page = () => {
   const [selectedAvatar, setSelectedAvatar] = useState(avatars[0]);
@@ -15,6 +22,10 @@ const page = () => {
   const [field, setField] = useState("");
   const [role, setRole] = useState("");
   const [accountType, setAccountType] = useState("");
+
+  const isDisabled = !fullName || !field || !role || !accountType;
+
+  const router = useRouter();
 
   const handleSubmit = () => {
     const data = {
@@ -26,6 +37,8 @@ const page = () => {
     };
 
     console.log("Final Profile Data:", data);
+
+    router.push("/dashboard");
   };
 
   return (
@@ -40,7 +53,7 @@ const page = () => {
 
       <hr className="flex-1 border-muted mt-5" />
 
-      <div className="flex flex-col md:flex-row justify-evenly items-center gap-10">
+      <div className="flex flex-col md:flex-row justify-evenly items-center md:gap-10">
         {/* LEFT SIDE – Avatars */}
         <div className="flex flex-col">
           <div className="flex flex-row items-center gap-6 mt-10">
@@ -51,7 +64,9 @@ const page = () => {
               alt="Selected Avatar"
               className="rounded-full border-4 border-foreground ring-3 ring-accent shadow-md"
             />
-            <p className="text-base font-medium">Choose your Avatar</p>
+            <p className="text-base font-medium">
+              Choose your Avatar <span className="align-top text-error">*</span>
+            </p>
           </div>
 
           <div className="flex flex-row items-center">
@@ -137,10 +152,22 @@ const page = () => {
             </div>
 
             {/* Account Type */}
-            <div>
-              <Label htmlFor="AccountType">
-                Account Type<span className="align-top text-error">*</span>
-              </Label>
+            <div className="w-full">
+              <div className="flex items-center justify-between w-full">
+                <Label htmlFor="AccountType">
+                  Account Type<span className="align-top text-error">*</span>
+                </Label>
+                <HoverCard>
+                  <HoverCardTrigger>
+                    <CircleQuestionMark className="size-5 text-tertiary hover:text-accent" />
+                  </HoverCardTrigger>
+                  <HoverCardContent className="bg-foreground border border-muted text-secondary w-md mr-10 rounded-[12px] text-sm ">
+                    Choose <strong>Student</strong> to practice interviews, or{" "}
+                    <strong>Creator</strong> to design and manage interviews for
+                    others.
+                  </HoverCardContent>
+                </HoverCard>
+              </div>
 
               <RadioGroup
                 className="gap-5 mt-2"
@@ -159,14 +186,14 @@ const page = () => {
 
               {accountType === "creator" ? (
                 <p className="text-sm text-secondary mt-2">
-                  Your profile will start as a student account. Once your
+                  Your profile will be created as a student account. Once your
                   creator request is reviewed and approved by our team, you’ll
                   gain access to creator tools and features.
                 </p>
               ) : null}
             </div>
 
-            <div>
+            <div className="w-fit">
               <Label htmlFor="SocialLinks">
                 Social Links
                 {accountType === "creator" ? (
@@ -177,21 +204,43 @@ const page = () => {
                   </span>
                 )}
               </Label>
-              <Input
-                className="mt-2"
-                id="SocialLinks"
-                placeholder="Enter your social media or portfolio links"
-              />
+              <div className="relative w-full">
+                <FileUser className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary mt-0.5 z-5" />
+                <Input
+                  className="mt-2 pl-15"
+                  id="PortfolioLink"
+                  placeholder="Enter your portfolio link"
+                />
+              </div>
+              <div className="relative w-full">
+                <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary mt-0.5 z-5" />
+                <Input
+                  className="mt-2 pl-15"
+                  id="LinkedinLink"
+                  placeholder="Enter your LinkedIn link"
+                />
+              </div>
+              <div className="relative w-full">
+                <Github className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary mt-0.5 z-5" />
+                <Input
+                  className="mt-2 pl-15"
+                  id="GithubLink"
+                  placeholder="Enter your GitHub link"
+                />
+              </div>
             </div>
           </div>
 
           {/* Submit */}
           <div className="w-full justify-center">
             <Button
+              disabled={isDisabled}
               onClick={handleSubmit}
               className="mt-8 bg-accent w-full text-background px-6 py-2 rounded-[10px] font-medium hover:bg-accent/90 transition"
             >
-              Save and Continue
+              {isDisabled
+                ? "Please fill all required fields "
+                : "Save and Continue"}
             </Button>
           </div>
         </div>

@@ -4,10 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 import React from "react";
 
 const page = () => {
+  const router = useRouter();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Navigate after successful submit
+    router.push("/auth/profile-setup");
+  };
   return (
     <div>
       <div className="flex flex-col md:flex-row items-center justify-center gap-20">
@@ -18,7 +26,7 @@ const page = () => {
               Please create your account to continue
             </p>
           </div>
-          <form action="">
+          <form action="" onSubmit={handleSubmit}>
             <div>
               <Label htmlFor="email" className="mt-6 mb-2">
                 Email
@@ -63,10 +71,7 @@ const page = () => {
                 <a href="/auth/login" className="text-accent hover:underline">
                   Login
                 </a>
-                {/* Delete this later */}
-                <a className="ml-5" href="/auth/profile-setup">
-                  Profile
-                </a>
+                
               </p>
             </div>
           </form>
