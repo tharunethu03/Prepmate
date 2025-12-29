@@ -13,7 +13,7 @@
     --accent: #3c4efb;
     --muted: #d1d5db;
     --border: #e2e8f0;
-    --accent-gradient: linear-gradient(90deg, #3c4ffb 100%, #33a3fa 100%);
+    --accent-gradient: linear-gradient(180deg, #3c4ffb 0%, #33a3fa 100%);
     --success: #22c55e;
     --warning: #facc15;
     --error: #ef4444;
@@ -21,14 +21,14 @@
 
   .dark {
     --background: #1a1a1a;
-    --foreground: #9c9c9c;
+    --foreground: #1e1e1e;
     --primary: #ffffff;
     --secondary: #a1a1aa;
     --tertiary: #71717a;
     --accent: #e3ff3b;
     --muted: #3f3f46;
     --border: #2d2d2d;
-    --accent-gradient: linear-gradient(90deg, #2fc989 100%, #cbea3e 100%);
+    --accent-gradient: linear-gradient(90deg, #2fc989 0%, #cbea3e 100%);
     --success: #4ade80;
     --warning: #fde047;
     --error: #f87171;
@@ -91,5 +91,11 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .bg-accent-gradient {
+    background: var(--accent-gradient);
   }
 }
