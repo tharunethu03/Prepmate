@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/ui/sidebar/sidebar";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -19,13 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="">
-      <body className={`${inter.variable} antialiased`}>
-        <div className="flex flex-col px-[30px] py-5 h-screen w-screen gap-[30px] ">
-          <Sidebar />
-          <div>{children}</div>
-        </div>
-      </body>
+    <html lang="en" className="dark">
+      <body className={`${inter.className} antialiased`}>{children}</body>
     </html>
   );
 }

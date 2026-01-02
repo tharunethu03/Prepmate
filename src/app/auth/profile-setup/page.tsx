@@ -38,13 +38,13 @@ const page = () => {
 
     console.log("Final Profile Data:", data);
 
-    router.push("/dashboard");
+    router.push("/dashboard/dashboard");
   };
 
   return (
-    <div className="w-full px-10">
+    <div className="w-full px-10 flex flex-col ">
       {/* Header */}
-      <div className="flex-col items-start">
+      <div className="flex-col items-start ">
         <h1 className="text-4xl font-bold">Profile Setup</h1>
         <p className="text-sm text-secondary">
           Set up your profile to start your prep journey.
@@ -53,9 +53,9 @@ const page = () => {
 
       <hr className="flex-1 border-muted mt-5" />
 
-      <div className="flex flex-col md:flex-row justify-evenly items-center md:gap-10">
+      <div className="flex flex-col md:flex-row justify-evenly lg:justify-center items-center md:gap-10">
         {/* LEFT SIDE – Avatars */}
-        <div className="flex flex-col">
+        <div className="flex flex-col ">
           <div className="flex flex-row items-center gap-6 mt-10">
             <Image
               src={selectedAvatar}
