@@ -15,36 +15,36 @@ import { SidebarItem } from "./sidebarItem";
 import { usePathname } from "next/navigation";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { TooltipContent } from "../ui/tooltip";
+import { signOut } from "next-auth/react";
+
 const Sidebar = () => {
   const pathname = usePathname();
 
   return (
     <TooltipPrimitive.Provider delayDuration={800}>
-      <div className="flex flex-col justify-between py-8 px-3 rounded-[22px] bg-accent-gradient h-screen w-fit">
+      <div className="flex flex-col justify-between py-8 px-3 rounded-[22px] bg-accent-gradient  w-fit">
         <div className="flex flex-col gap-2">
           <SidebarItem
-            href="/dashboard/dashboard"
+            href="/dashboard"
             label="Dashboard"
             icon={
               <LayoutGrid
                 size={22}
                 className={`${
-                  pathname === "/dashboard/dashboard"
-                    ? "text-primary"
-                    : "text-foreground"
+                  pathname === "/dashboard" ? "text-primary" : "text-foreground"
                 }`}
               />
             }
           />
-                  
+
           <SidebarItem
-            href="/dashboard/explore-interviews"
+            href="/explore-interviews"
             label="Explore Interviews"
             icon={
               <Search
                 size={22}
                 className={`${
-                  pathname === "/dashboard/explore-interviews"
+                  pathname === "/explore-interviews"
                     ? "text-primary"
                     : "text-foreground"
                 }`}
@@ -53,13 +53,13 @@ const Sidebar = () => {
           />
 
           <SidebarItem
-            href="/dashboard/create-interviews"
+            href="/create-interviews"
             label="Create Interviews"
             icon={
               <Pencil
                 size={22}
                 className={`${
-                  pathname === "/dashboard/create-interviews"
+                  pathname === "/create-interviews"
                     ? "text-primary"
                     : "text-foreground"
                 }`}
@@ -67,13 +67,13 @@ const Sidebar = () => {
             }
           />
           <SidebarItem
-            href="/dashboard/saved-interviews"
+            href="/saved-interviews"
             label="Saved Interviews"
             icon={
               <Bookmark
                 size={22}
                 className={`${
-                  pathname === "/dashboard/saved-interviews"
+                  pathname === "/saved-interviews"
                     ? "text-primary"
                     : "text-foreground"
                 }`}
@@ -81,13 +81,13 @@ const Sidebar = () => {
             }
           />
           <SidebarItem
-            href="/dashboard/leaderboard"
+            href="/leaderboard"
             label="Leaderboard"
             icon={
               <Trophy
                 size={22}
                 className={`${
-                  pathname === "/dashboard/leaderboard"
+                  pathname === "/leaderboard"
                     ? "text-primary"
                     : "text-foreground"
                 }`}
@@ -95,13 +95,13 @@ const Sidebar = () => {
             }
           />
           <SidebarItem
-            href="/dashboard/challenges"
+            href="/challenges"
             label="Challenges"
             icon={
               <Puzzle
                 size={22}
                 className={`${
-                  pathname === "/dashboard/challenges"
+                  pathname === "/challenges"
                     ? "text-primary"
                     : "text-foreground"
                 }`}
@@ -112,27 +112,25 @@ const Sidebar = () => {
 
         <div className="flex flex-col gap-2">
           <SidebarItem
-            href="/dashboard/about-us"
+            href="/about-us"
             label="About Us"
             icon={
               <Info
                 size={22}
                 className={`${
-                  pathname === "/dashboard/about-us"
-                    ? "text-primary"
-                    : "text-foreground"
+                  pathname === "/about-us" ? "text-primary" : "text-foreground"
                 }`}
               />
             }
           />
           <SidebarItem
-            href="/dashboard/help-center"
+            href="/help-center"
             label="Help Center"
             icon={
               <CircleQuestionMark
                 size={22}
                 className={`${
-                  pathname === "/dashboard/help-center"
+                  pathname === "/help-center"
                     ? "text-primary"
                     : "text-foreground"
                 }`}
@@ -140,22 +138,23 @@ const Sidebar = () => {
             }
           />
           <SidebarItem
-            href="/dashboard/settings"
+            href="/settings"
             label="Settings"
             icon={
               <Settings
                 size={22}
                 className={`${
-                  pathname === "/dashboard/settings"
-                    ? "text-primary"
-                    : "text-foreground"
+                  pathname === "/settings" ? "text-primary" : "text-foreground"
                 }`}
               />
             }
           />
           <TooltipPrimitive.Root>
             <TooltipPrimitive.Trigger asChild>
-              <button className="p-3 rounded-full cursor-pointer">
+              <button
+                className="p-3 rounded-full cursor-pointer"
+                onClick={() => signOut()}
+              >
                 <LogOut size={22} className="text-foreground" />
               </button>
             </TooltipPrimitive.Trigger>

@@ -1,11 +1,9 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import Image from "next/image";
 
 import React from "react";
+import LoginForm from "./LoginForm";
 
 export default function LoginPage() {
   return (
@@ -26,40 +24,7 @@ export default function LoginPage() {
             Please login to your account to continue
           </p>
         </div>
-        <form action="">
-          <div>
-            <Label htmlFor="email" className="mt-6 mb-2">
-              Email
-            </Label>
-            <Input type="email" placeholder="Enter your email" />
-          </div>
-          <div>
-            <Label htmlFor="password" className="mt-6 mb-2">
-              Password
-            </Label>
-            <Input
-              type="password"
-              passwordToggle
-              placeholder="Enter your password"
-            />
-            <div className="flex justify-end mt-2">
-              <a href="" className="text-xs text-tertiary hover:text-accent">
-                Forgot Password?
-              </a>
-            </div>
-          </div>
-          <Button className="mt-8 w-full" type="submit">
-            Login
-          </Button>
-          <div className="flex flex-row justify-center mt-4 gap-1">
-            <p className="text-sm text-secondary">
-              Don't have an account?{" "}
-              <a href="/auth/signup" className="text-accent hover:underline">
-                Sign up
-              </a>
-            </p>
-          </div>
-        </form>
+        <LoginForm />
         <div className="flex items-center gap-3 my-11">
           <hr className="flex-1 border-muted" />
           <p className="text-sm text-tertiary">or</p>
