@@ -15,44 +15,73 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
-const page = () => {
+const ProfileForm = () => {
   const [selectedAvatar, setSelectedAvatar] = useState(avatars[0]);
-  const [fullName, setFullName] = useState("");
+  const [name, setName] = useState("");
   const [field, setField] = useState("");
-  const [role, setRole] = useState("");
+  const [roleTitle, setRoleTitle] = useState("");
   const [accountType, setAccountType] = useState("");
+  const [portfolioLink, setPortfolioLink] = useState("");
+  const [linkedinLink, setLinkedinLink] = useState("");
+  const [githubLink, setGithubLink] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const isDisabled = !fullName || !field || !role || !accountType;
+  const isBaseInvalid = !name || !field || !roleTitle || !accountType;
+  const isCreatorInvalid =
+    accountType === "creator" &&
+    (!name ||
+      !field ||
+      !roleTitle ||
+      !accountType ||
+      !linkedinLink ||
+      !githubLink);
+
+  const isDisabled = isBaseInvalid || isCreatorInvalid;
 
   const router = useRouter();
 
-  const handleSubmit = () => {
-    const data = {
-      fullName,
-      field,
-      role,
-      accountType,
-      avatar: selectedAvatar,
-    };
+  const { data: session, status } = useSession();
 
-    console.log("Final Profile Data:", data);
+  if (status === "loading") return null;
 
-    router.push("/dashboard/dashboard");
+  if (!session) {
+    router.push("/login");
+    return null;
+  }
+
+  const handleSubmit = async () => {
+    try {
+      const res = await fetch("/api/profile-setup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          field,
+          roleTitle,
+          selectedAvatar,
+          portfolioLink,
+          linkedinLink,
+          githubLink,
+        }),
+      });
+
+      if (res.ok) {
+        router.push("/dashboard");
+      } else {
+        const data = await res.json();
+        setError(data.message || "Profile setup failed");
+      }
+    } catch (error) {
+      setError("Something went wrong. Please try again.");
+      console.error("Profile setup error:", error);
+    }
   };
-
   return (
-    <div className="w-full px-10 flex flex-col ">
-      {/* Header */}
-      <div className="flex-col items-start ">
-        <h1 className="text-4xl font-bold">Profile Setup</h1>
-        <p className="text-sm text-secondary">
-          Set up your profile to start your prep journey.
-        </p>
-      </div>
-
-      <hr className="flex-1 border-muted mt-5" />
-
+    <div>
       <div className="flex flex-col md:flex-row justify-evenly lg:justify-center items-center md:gap-10">
         {/* LEFT SIDE – Avatars */}
         <div className="flex flex-col ">
@@ -103,10 +132,10 @@ const page = () => {
 
               <Input
                 className="mt-2"
-                id="FullName"
+                id="name"
                 placeholder="Enter your full name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
             </div>
 
@@ -118,13 +147,7 @@ const page = () => {
 
               <Dropdown
                 className="mt-2"
-                options={[
-                  "Software Engineering",
-                  "UI/UX",
-                  "Cybersecurity",
-                  "Mobile Development",
-                  "Machine Learning / AI",
-                ]}
+                options={["Information Technology"]}
                 placeholder="Select your field"
                 onChange={(value) => setField(value)}
               />
@@ -147,7 +170,7 @@ const page = () => {
                   "QA Engineer",
                 ]}
                 placeholder="Select your role"
-                onChange={(value) => setRole(value)}
+                onChange={(value) => setRoleTitle(value)}
               />
             </div>
 
@@ -163,7 +186,7 @@ const page = () => {
                   </HoverCardTrigger>
                   <HoverCardContent className="bg-foreground border border-muted text-secondary w-md mr-10 rounded-[12px] text-sm ">
                     Choose <strong>Student</strong> to practice interviews, or{" "}
-                    <strong>Creator</strong> to design and manage interviews for
+                    <strong>Creator</strong> to create and manage interviews for
                     others.
                   </HoverCardContent>
                 </HoverCard>
@@ -210,6 +233,8 @@ const page = () => {
                   className="mt-2 pl-15"
                   id="PortfolioLink"
                   placeholder="Enter your portfolio link"
+                  value={portfolioLink}
+                  onChange={(e) => setPortfolioLink(e.target.value)}
                 />
               </div>
               <div className="relative w-full">
@@ -218,6 +243,8 @@ const page = () => {
                   className="mt-2 pl-15"
                   id="LinkedinLink"
                   placeholder="Enter your LinkedIn link"
+                  value={linkedinLink}
+                  onChange={(e) => setLinkedinLink(e.target.value)}
                 />
               </div>
               <div className="relative w-full">
@@ -226,10 +253,15 @@ const page = () => {
                   className="mt-2 pl-15"
                   id="GithubLink"
                   placeholder="Enter your GitHub link"
+                  value={githubLink}
+                  onChange={(e) => setGithubLink(e.target.value)}
                 />
               </div>
             </div>
           </div>
+          {error && (
+            <p className="text-sm text-error mt-2 text-center">{error}</p>
+          )}
 
           {/* Submit */}
           <div className="w-full justify-center">
@@ -249,4 +281,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default ProfileForm;

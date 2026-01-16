@@ -85,6 +85,11 @@ body {
   @apply font-sans;
 }
 
+h1 {
+  font-size: 42px;
+  font-weight: bold;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
