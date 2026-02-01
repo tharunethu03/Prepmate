@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import React from "react";
 import LoginForm from "./LoginForm";
+import OauthButtons from "@/components/ui/oauth-buttons";
 
 export default function LoginPage() {
   return (
@@ -12,7 +13,7 @@ export default function LoginPage() {
         src="/login/login-img.png"
         alt="Login illustration"
         width={600}
-        height={500}
+        height={600}
         className="object-contain hidden md:block"
         priority
         unoptimized
@@ -31,32 +32,7 @@ export default function LoginPage() {
           <hr className="flex-1 border-muted" />
         </div>
 
-        <div className="flex flex-col justify-center">
-          <Button variant="outline" className="w-full mb-4">
-            <Image
-              src="/login/google-icon.png"
-              alt="Google logo"
-              width={18}
-              height={18}
-              className="mr-2"
-              priority
-              unoptimized
-            />
-            Continue with Google
-          </Button>
-          <Button variant="outline" className="w-full mb-4">
-            <Image
-              src="/login/apple-icon.png"
-              alt="Apple logo"
-              width={18}
-              height={18}
-              className="mr-2"
-              priority
-              unoptimized
-            />
-            Continue with Apple
-          </Button>
-        </div>
+        <OauthButtons />
       </div>
     </div>
   );

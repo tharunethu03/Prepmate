@@ -7,7 +7,15 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email: session.user.email },
+  });
+
+  if (!existingUser) {
+    return new Response("User not found", { status: 404 });
   }
 
   const body = await req.json();
@@ -29,5 +37,13 @@ export async function POST(req: Request) {
     },
   });
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({
+    success: true,
+    updatedSessionData: {
+      name: body.name,
+      roleTitle: body.roleTitle,
+      avatar: body.selectedAvatar,
+      profileCompleted: true,
+    },
+  });
 }

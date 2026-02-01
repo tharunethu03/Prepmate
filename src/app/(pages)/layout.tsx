@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "../globals.css";
 import Sidebar from "@/components/sidebar/sidebar";
 import Header from "@/components/header/Header";
+import { ThemeProvider } from "next-themes";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -21,14 +22,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`}>
-        <div className="flex flex-row px-[30px] py-5 h-screen w-screen gap-[30px] overflow-hidden">
-          <Sidebar />
-          <div className="flex flex-col w-full">
-            <Header />
-            {children}
+      <body
+        className={`${inter.className} antialiased bg-background text-foreground light`}
+      >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <div className="flex flex-row px-7.5 py-5 h-screen w-screen gap-7.5 overflow-hidden">
+            <Sidebar />
+            <div className="flex flex-col w-full">
+              <Header />
+              {children}
+            </div>
           </div>
-        </div>
+        </ThemeProvider>
       </body>
     </html>
   );

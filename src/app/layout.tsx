@@ -23,13 +23,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Providers>
-            <Toaster position="top-center" />
-            {children}
-          </Providers>
-        </ThemeProvider>
+      <body
+        className={`${inter.className} antialiased bg-background text-foreground light`}
+      >
+        <Providers>
+          <Toaster position="top-center" />
+          {children}
+        </Providers>
       </body>
     </html>
   );
