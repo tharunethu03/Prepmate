@@ -41,6 +41,7 @@ const ProfileForm = () => {
   const isDisabled = isBaseInvalid || isCreatorInvalid;
 
   const router = useRouter();
+  const { update } = useSession();
 
   const { data: session, status } = useSession();
 
@@ -70,7 +71,23 @@ const ProfileForm = () => {
       });
 
       if (res.ok) {
-        router.push("/dashboard");
+        const data = await res.json();
+        if (data.success) {
+          await update({
+            name: data.updatedSessionData.name,
+            role: data.updatedSessionData.role,
+            avatar: data.updatedSessionData.avatar,
+            profileCompleted: true,
+            roleTitle: data.updatedSessionData.roleTitle,
+            field: data.updatedSessionData.field,
+            creatorRequest: data.updatedSessionData.creatorRequest,
+            portfolioLink: data.updatedSessionData.portfolioLink,
+            linkedinLink: data.updatedSessionData.linkedinLink,
+            githubLink: data.updatedSessionData.githubLink,
+          });
+
+          router.push("/dashboard");
+        }
       } else {
         const data = await res.json();
         setError(data.message || "Profile setup failed");
@@ -161,15 +178,21 @@ const ProfileForm = () => {
 
               <Dropdown
                 className="mt-2"
-                options={[
-                  "Frontend Engineer",
-                  "Backend Engineer",
-                  "Fullstack Engineer",
-                  "Mobile Developer",
-                  "DevOps Engineer",
-                  "QA Engineer",
-                ]}
-                placeholder="Select your role"
+                options={
+                  !field
+                    ? []
+                    : [
+                        "Frontend Engineer",
+                        "Backend Engineer",
+                        "Fullstack Engineer",
+                        "Mobile Developer",
+                        "DevOps Engineer",
+                        "QA Engineer",
+                      ]
+                }
+                placeholder={
+                  !field ? "Select field first" : "Select your role title"
+                }
                 onChange={(value) => setRoleTitle(value)}
               />
             </div>

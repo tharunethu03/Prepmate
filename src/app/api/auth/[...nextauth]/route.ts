@@ -1,18 +1,36 @@
 import { User } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { compare } from "bcrypt";
-import NextAuth, { type NextAuthOptions, type Session } from "next-auth";
+import NextAuth, { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { type JWT } from "next-auth/jwt";
+import GoogleProvider from "next-auth/providers/google";
+import GitHubProvider from "next-auth/providers/github";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 
 declare module "next-auth" {
+  interface User {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    avatar: string | null;
+    profileCompleted: boolean;
+  }
+
   interface Session {
     user: {
       id: string;
       name: string;
       email: string;
       role: string;
-      avatar: string;
+      avatar: string | null;
+      profileCompleted: boolean;
+      roleTitle: string | null;
+      field: string | null;
+      creatorRequest: boolean;
+      portfolioLink: string | null;
+      linkedinLink: string | null;
+      githubLink: string | null;
     };
   }
 }
@@ -23,11 +41,19 @@ declare module "next-auth/jwt" {
     name: string;
     email: string;
     role: string;
-    avatar: string;
+    avatar: string | null;
+    profileCompleted: boolean;
+    roleTitle?: string;
+    field?: string;
+    creatorRequest?: boolean;
+    portfolioLink?: string;
+    linkedinLink?: string;
+    githubLink?: string;
   }
 }
 
 export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
   pages: {
     signIn: "/login",
   },
@@ -35,6 +61,14 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    GitHubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    }),
     CredentialsProvider({
       name: "Sign in",
       credentials: {
@@ -49,65 +83,84 @@ export const authOptions: NextAuthOptions = {
           placeholder: "Enter your password",
         },
       },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) {
-          return null;
-        }
+      async authorize(credentials, req) {
+        if (!credentials?.email || !credentials.password) return null;
 
         const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
+          where: { email: credentials.email },
         });
-
-        if (!user) {
-          return null;
-        }
+        if (!user || !user.password) return null;
 
         const isPasswordValid = await compare(
           credentials.password,
-          user.password
+          user.password,
         );
-
-        if (!isPasswordValid) {
-          return null;
-        }
+        if (!isPasswordValid) return null;
 
         return {
           id: user.id,
-          name: user.name ?? "",
-          email: user.email ?? "",
-          role: user.role,
-          avatar: user.avatar ?? null,
+          name: user.name || "",
+          email: user.email,
+          role: user.role || "STUDENT",
+          avatar: user.avatar,
+          profileCompleted: user.profileCompleted,
         };
       },
     }),
   ],
   callbacks: {
-    jwt: ({ token, user }) => {
-      console.log("JWT CALLBACK", { token, user });
+    // JWT token contains all info needed for session
+    async jwt({ token, user, trigger, session }) {
+      // First login
       if (user) {
-        return {
-          ...token,
-          id: (user as any).id,
-          name: (user as any).name,
-          email: (user as any).email,
-          role: (user as any).role,
-          avatar: (user as any).avatar,
-        };
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.avatar = user.avatar;
+        token.role = user.role;
+        token.profileCompleted = user.profileCompleted;
       }
+
+      if (trigger === "update" && session) {
+        token.name = session.name;
+        token.avatar = session.avatar;
+        token.role = session.role;
+        token.roleTitle = session.roleTitle;
+        token.field = session.field;
+        token.creatorRequest = session.creatorRequest;
+        token.portfolioLink = session.portfolioLink;
+        token.linkedinLink = session.linkedinLink;
+        token.githubLink = session.githubLink;
+        token.profileCompleted = session.profileCompleted;
+      }
+
       return token;
     },
-    session: ({ session, token }) => {
-      session.user = {
-        id: token.id as string,
-        name: token.name as string,
-        email: token.email as string,
-        role: token.role as string,
-        avatar: token.avatar as string,
-      };
 
+    // Session reads directly from JWT
+    session: async ({ session, token }) => {
+      session.user = {
+        id: token.id!,
+        name: token.name!,
+        email: token.email!,
+        role: token.role!,
+        roleTitle: token.roleTitle ?? null,
+        field: token.field ?? null,
+        creatorRequest: token.creatorRequest ?? false,
+        portfolioLink: token.portfolioLink ?? null,
+        linkedinLink: token.linkedinLink ?? null,
+        githubLink: token.githubLink ?? null,
+        avatar: token.avatar ?? null,
+
+        profileCompleted: token.profileCompleted ?? false,
+      };
       return session;
+    },
+
+    // Handle redirect after login
+    redirect: async ({ url, baseUrl }) => {
+      // Always allow default redirects
+      return url.startsWith(baseUrl) ? url : baseUrl;
     },
   },
 };

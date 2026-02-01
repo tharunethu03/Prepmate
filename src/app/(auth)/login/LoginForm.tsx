@@ -15,21 +15,37 @@ const LoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       const res = await signIn("credentials", {
         redirect: false,
         email,
         password,
-        callbackUrl,
       });
 
-      console.log("Res", res);
-      if (!res?.error) {
-        router.push(callbackUrl);
-      } else {
+      if (res?.error) {
         toast.error("Login failed, Invalid credentials");
+        return;
       }
-    } catch (error: any) {}
+
+      // Fetch the session after successful sign-in
+      const sessionRes = await fetch("/api/auth/session");
+      const session = await sessionRes.json();
+
+      if (!session?.user) {
+        toast.error("Session not found");
+        return;
+      }
+
+      if (!session.user.profileCompleted) {
+        router.push("/profile-setup"); // Redirect new users to complete profile
+      } else {
+        router.push(callbackUrl); // Otherwise go to callbackUrl (dashboard)
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+      console.error(error);
+    }
   };
 
   return (
@@ -68,7 +84,7 @@ const LoginForm = () => {
         </Button>
         <div className="flex flex-row justify-center mt-4 gap-1">
           <p className="text-sm text-secondary">
-            Don't have an account?{" "}
+            {"Don't have an account? "}
             <a href="/signup" className="text-accent hover:underline">
               Sign up
             </a>

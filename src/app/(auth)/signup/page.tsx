@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import RegisterForm from "./RegisterForm";
+import OauthButtons from "@/components/ui/oauth-buttons";
 
 const page = () => {
   return (
@@ -20,32 +21,7 @@ const page = () => {
             <hr className="flex-1 border-muted" />
           </div>
 
-          <div className="flex flex-col justify-center">
-            <Button variant="outline" className="w-full mb-4">
-              <Image
-                src="/login/google-icon.png"
-                alt="Google logo"
-                width={18}
-                height={18}
-                className="mr-2"
-                priority
-                unoptimized
-              />
-              Continue with Google
-            </Button>
-            <Button variant="outline" className="w-full mb-4">
-              <Image
-                src="/login/apple-icon.png"
-                alt="Apple logo"
-                width={18}
-                height={18}
-                className="mr-2"
-                priority
-                unoptimized
-              />
-              Continue with Apple
-            </Button>
-          </div>
+          <OauthButtons />
         </div>
         <Image
           src="/signup/signup-img.png"

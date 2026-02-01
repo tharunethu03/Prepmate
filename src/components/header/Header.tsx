@@ -11,13 +11,8 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 const Header = () => {
   const { data: session, status } = useSession();
-  const [avatar, setAvatar] = useState<string | null>(null);
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const router = useRouter();
-
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
 
   return (
     <TooltipPrimitive.Provider delayDuration={800}>
@@ -54,10 +49,10 @@ const Header = () => {
           </div>
 
           <img
-            src={session?.user?.avatar || ""}
+            src={session?.user?.avatar || "/default-avatar.png"}
             alt="AVATAR"
             onClick={() => router.push("/profile")}
-            className="w-[80px] border border-background ring-3 ring-accent rounded-full"
+            className="w-20 border border-background ring-3 ring-accent rounded-full"
           />
         </div>
       </div>

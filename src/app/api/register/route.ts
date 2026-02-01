@@ -17,17 +17,17 @@ export async function POST(req: Request) {
         email: user.email,
       },
     });
-  } catch (error: any) {
-    if (error.code === "P2002") {
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "P2002") {
       return NextResponse.json(
         { message: "Email already registered" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
     return NextResponse.json(
       { message: "Something went wrong" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

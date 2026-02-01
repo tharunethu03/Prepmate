@@ -18,8 +18,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="">
-      <body className={`${inter.className} antialiased`}>
+    <html lang="en">
+      <body
+        suppressHydrationWarning
+        className={`${inter.className} antialiased auth-light`}
+      >
         <div className="flex flex-col justify-center-safe items-center h-screen p-10">
           {children}
           <p className="text-xs text-tertiary align-bottom items-baseline p-5">
