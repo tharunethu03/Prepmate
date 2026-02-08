@@ -1,11 +1,27 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
+"use client";
+import OnboardingOverlay from "@/app/(auth)/onboarding/page";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
 
-const page = async () => {
-  const session = await getServerSession(authOptions);
+const DashboardPage = () => {
+  const { data: session, status } = useSession();
+  const [dismissed, setDismissed] = useState(false);
 
-  return <div></div>;
+  const showOnboarding =
+    status === "authenticated" &&
+    session?.user?.onboardingCompleted === false &&
+    !dismissed;
+
+  const handleClose = async () => {
+    setDismissed(true);
+    await fetch("/api/onboarding/complete", {
+      method: "POST",
+    });
+  };
+
+  return (
+    <div>{showOnboarding && <OnboardingOverlay onFinish={handleClose} />}</div>
+  );
 };
 
-export default page;
+export default DashboardPage;

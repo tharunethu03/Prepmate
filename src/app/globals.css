@@ -13,7 +13,7 @@
     --accent: #3c4efb;
     --muted: #d1d5db;
     --border: #e2e8f0;
-    --accent-gradient: linear-gradient(180deg, #3c4ffb 0%, #33a3fa 100%);
+    --accent-gradient: linear-gradient(120deg, #3c4ffb 0%, #33a3fa 100%);
     --success: #22c55e;
     --warning: #facc15;
     --error: #ef4444;
@@ -28,7 +28,7 @@
     --accent: #e3ff3b;
     --muted: #3f3f46;
     --border: #2d2d2d;
-    --accent-gradient: linear-gradient(90deg, #2fc989 0%, #cbea3e 100%);
+    --accent-gradient: linear-gradient(120deg, #2fc989 0%, #cbea3e 100%);
     --success: #4ade80;
     --warning: #fde047;
     --error: #f87171;
@@ -90,6 +90,23 @@ h1 {
   font-weight: bold;
 }
 
+h2 {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+h3 {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.sub-text {
+  font-size: 14px;
+  color: var(--secondary);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -102,5 +119,20 @@ h1 {
 @layer utilities {
   .bg-accent-gradient {
     background: var(--accent-gradient);
+  }
+}
+
+/* Responsive for small screens */
+@media (max-width: 640px) {
+  h1 {
+    font-size: 28px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  .sub-text {
+    font-size: 12px;
   }
 }
