@@ -28,6 +28,7 @@ model User {
   linkedinLink  String?
   githubLink    String?
   profileCompleted Boolean   @default(false)
+  onboardingCompleted Boolean @default(false)
 
   accounts Account[]
 

@@ -9,20 +9,17 @@ import {
   Info,
   CircleQuestionMark,
   Settings,
-  LogOut,
 } from "lucide-react";
 import { SidebarItem } from "./sidebarItem";
 import { usePathname } from "next/navigation";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import { TooltipContent } from "../ui/tooltip";
-import { signOut } from "next-auth/react";
 
 const Sidebar = () => {
   const pathname = usePathname();
 
   return (
     <TooltipPrimitive.Provider delayDuration={800}>
-      <div className="flex flex-col justify-between py-8 px-3 rounded-[22px] bg-accent-gradient  w-fit">
+      <div className="hidden md:flex flex-col justify-between py-8 px-3 rounded-[22px] bg-accent-gradient  w-fit">
         <div className="flex flex-col gap-2">
           <SidebarItem
             href="/dashboard"
@@ -149,23 +146,7 @@ const Sidebar = () => {
               />
             }
           />
-          <TooltipPrimitive.Root>
-            <TooltipPrimitive.Trigger asChild>
-              <button
-                className="p-3 rounded-full cursor-pointer"
-                onClick={() => signOut()}
-              >
-                <LogOut size={22} className="text-foreground" />
-              </button>
-            </TooltipPrimitive.Trigger>
-            <TooltipContent
-              side="right"
-              align="center"
-              className="rounded-[12px] border border-border"
-            >
-              <p className="text-sm text-secondary">Logout</p>
-            </TooltipContent>
-          </TooltipPrimitive.Root>
+          
         </div>
       </div>
     </TooltipPrimitive.Provider>

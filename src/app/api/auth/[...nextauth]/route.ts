@@ -15,6 +15,7 @@ declare module "next-auth" {
     role: string;
     avatar: string | null;
     profileCompleted: boolean;
+    onboardingCompleted: boolean;
   }
 
   interface Session {
@@ -25,6 +26,7 @@ declare module "next-auth" {
       role: string;
       avatar: string | null;
       profileCompleted: boolean;
+      onboardingCompleted: boolean;
       roleTitle: string | null;
       field: string | null;
       creatorRequest: boolean;
@@ -43,6 +45,7 @@ declare module "next-auth/jwt" {
     role: string;
     avatar: string | null;
     profileCompleted: boolean;
+    onboardingCompleted: boolean;
     roleTitle?: string;
     field?: string;
     creatorRequest?: boolean;
@@ -104,6 +107,7 @@ export const authOptions: NextAuthOptions = {
           role: user.role || "STUDENT",
           avatar: user.avatar,
           profileCompleted: user.profileCompleted,
+          onboardingCompleted: user.onboardingCompleted,
         };
       },
     }),
@@ -119,6 +123,7 @@ export const authOptions: NextAuthOptions = {
         token.avatar = user.avatar;
         token.role = user.role;
         token.profileCompleted = user.profileCompleted;
+        token.onboardingCompleted = user.onboardingCompleted;
       }
 
       if (trigger === "update" && session) {
@@ -153,6 +158,7 @@ export const authOptions: NextAuthOptions = {
         avatar: token.avatar ?? null,
 
         profileCompleted: token.profileCompleted ?? false,
+        onboardingCompleted: token.onboardingCompleted ?? false,
       };
       return session;
     },
