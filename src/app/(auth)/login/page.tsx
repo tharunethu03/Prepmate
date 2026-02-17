@@ -1,8 +1,5 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
-
-import React from "react";
 import LoginForm from "./LoginForm";
 import OauthButtons from "@/components/ui/oauth-buttons";
 

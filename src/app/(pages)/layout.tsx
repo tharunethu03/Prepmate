@@ -28,21 +28,20 @@ export default function RootLayout({
   }, []);
 
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${inter.className} antialiased bg-background text-foreground light`}
-      >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <div className="flex flex-row px-0 md:px-7.5 py-5 h-screen w-screen gap-7.5 overflow-hidden">
-            {isSm ? <FloatingSidebar /> : <Sidebar />}
+    
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <div className="flex flex-row px-0 md:px-7.5 py-5 h-screen w-screen gap-7.5 overflow-hidden">
+          {isSm ? <FloatingSidebar /> : <Sidebar />}
 
-            <div className="flex flex-col w-full">
-              <Header />
+          <div className="flex flex-col w-full">
+            <Header />
+            <div className="overflow-y-auto scrollbar-hide">
               {children}
             </div>
+            
           </div>
-        </ThemeProvider>
-      </body>
-    </html>
+        </div>
+      </ThemeProvider>
+    
   );
 }

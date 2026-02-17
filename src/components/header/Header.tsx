@@ -2,7 +2,7 @@
 import { Bell, LogOut, Moon, Sun, User, Users } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Title from "./Title";
 import * as Tooltip from "@radix-ui/react-tooltip";
@@ -23,6 +23,7 @@ const Header = () => {
   const [profileModal, setProfileModal] = useState(false);
   const [logout, setLogout] = useState(false);
 
+  const pathname = usePathname();
   const avatar = session?.user?.avatar;
 
   useEffect(() => {
@@ -33,7 +34,7 @@ const Header = () => {
   }, []);
 
   return (
-    <TooltipPrimitive.Provider delayDuration={800}>
+    <TooltipPrimitive.Provider delayDuration={1000}>
       <div className="flex flex-col border-b border-border md:border-none pb-5 md:pb-0">
         <div className="flex flex-row md:border-b border-border px-5 md:px-0 md:pb-5 w-full items-center justify-between">
           {isSm ? <FloatingSidebar /> : <Title />}
@@ -98,7 +99,7 @@ const Header = () => {
               </Tooltip.Root>
             </div>
             <Tooltip.Root>
-              <Tooltip.Trigger>
+              <Tooltip.Trigger asChild>
                 <motion.button
                   onClick={() => setNotificationModal(true)}
                   className="ring-2 ring-accent rounded-full p-1 cursor-pointer"
@@ -126,7 +127,7 @@ const Header = () => {
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
             >
               <Image
-                src={avatar || "/profile-setup/default.png"}
+                src={avatar || "/profile-setup/avatar1.png"}
                 width={80}
                 height={80}
                 alt="AVATAR"
@@ -148,14 +149,22 @@ const Header = () => {
           <div className="absolute top-28 md:top-30 right-2 md:right-5 bg-foreground border border-border  rounded-[22px] shadow-lg ">
             <button
               onClick={() => router.push("/profile")}
-              className="flex items-center gap-5 w-full cursor-pointer text-secondary hover:bg-accent hover:text-foreground px-5 py-3 rounded-[12px]"
+              className={`${
+                pathname === "/profile"
+                  ? "text-foreground bg-accent flex items-center gap-5 w-full cursor-pointer px-5 py-3 rounded-[12px]"
+                  : "flex items-center gap-5 w-full cursor-pointer text-secondary hover:bg-accent hover:text-foreground px-5 py-3 rounded-[12px]"
+              }`}
             >
               <User size={20} />
               <p className="text-sm">Profile</p>
             </button>
             <button
               onClick={() => router.push("/add-friends")}
-              className="flex items-center gap-5 w-full cursor-pointer text-secondary hover:bg-accent hover:text-foreground px-5 py-3 rounded-[12px]"
+              className={`${
+                pathname === "/add-friends"
+                  ? "text-foreground bg-accent flex items-center gap-5 w-full cursor-pointer px-5 py-3 rounded-[12px]"
+                  : "flex items-center gap-5 w-full cursor-pointer text-secondary hover:bg-accent hover:text-foreground px-5 py-3 rounded-[12px]"
+              }`}
             >
               <Users size={20} />
               <p className="text-sm">Friends</p>
@@ -172,11 +181,12 @@ const Header = () => {
       )}
       {logout && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-100">
-          <div className="bg-foreground border border-border  rounded-[22px] shadow-lg px-10 py-5">
+          <div className="bg-foreground border border-accent  rounded-[22px] shadow-lg px-10 py-5">
             <div className="flex flex-col items-center justify-center">
-              <h3 className="mb-3">Log out?</h3>
+              <h3 className="mb-3">Log out from PREPMATE?</h3>
               <p className="sub-text mb-5 max-w-xs text-center">
-                Are you sure you want to log out of your account?
+                You’re about to sign out of your account. Your progress and
+                interviews are safely saved.
               </p>
               <div className="flex items-center justify-between w-full px-10">
                 <Button
@@ -188,7 +198,7 @@ const Header = () => {
                 </Button>
                 <Button
                   variant={"default"}
-                  className="bg-error hover:bg-error/90 px-6"
+                  className="bg-error hover:bg-error/90 px-6 text-white"
                   onClick={() => signOut()}
                 >
                   Logout

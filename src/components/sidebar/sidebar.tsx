@@ -19,7 +19,7 @@ const Sidebar = () => {
 
   return (
     <TooltipPrimitive.Provider delayDuration={800}>
-      <div className="hidden md:flex flex-col justify-between py-8 px-3 rounded-[22px] bg-accent-gradient  w-fit">
+      <div className="hidden md:flex flex-col justify-between py-8 px-2.5 rounded-[22px] bg-accent-gradient  w-fit">
         <div className="flex flex-col gap-2">
           <SidebarItem
             href="/dashboard"

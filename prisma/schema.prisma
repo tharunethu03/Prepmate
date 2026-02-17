@@ -5,55 +5,129 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id    String  @id @default(auto()) @map("_id") @db.ObjectId
-  email String  @unique
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  email    String  @unique
   password String?
 
-  name  String?
-  field            String?
-  roleTitle        String?  
-  image            String? 
-  avatar           String?
+  name      String?
+  field     String?
+  roleTitle String?
+  image     String?
+  avatar    String?
 
   emailVerified DateTime?
 
-  role  String  @default("STUDENT")
-  creatorRequest   Boolean   @default(false)
+  role           String  @default("STUDENT")
+  creatorRequest Boolean @default(false)
 
-  portfolioLink String?
-  linkedinLink  String?
-  githubLink    String?
-  profileCompleted Boolean   @default(false)
+  portfolioLink       String?
+  linkedinLink        String?
+  githubLink          String?
+  profileCompleted    Boolean @default(false)
   onboardingCompleted Boolean @default(false)
 
-  accounts Account[]
+  accounts    Account[]
+  interviews  Interview[]
+  likes       Like[]
+  candidacies Candidate[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Account {
-  id                String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String   @db.ObjectId
+  id                String @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String @db.ObjectId
   type              String
   provider          String
   providerAccountId String
 
-  access_token      String?
-  refresh_token     String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
+  access_token  String?
+  refresh_token String?
+  expires_at    Int?
+  token_type    String?
+  scope         String?
+  id_token      String?
+  session_state String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
 
+model Interview {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  role          String
+  description   String
+  difficulty    Difficulty
+  topics        String[]
+  mode          InterviewMode
+  visibility    Visibility
+  questionCount Int
 
+  createdBy    String  @db.ObjectId
+  creator      User    @relation(fields: [createdBy], references: [id])
+  creatorField String?
+
+  likes      Like[]
+  candidates Candidate[]
+
+  createdAt DateTime @default(now())
+
+  questions Question[]
+}
+
+model Question {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  interviewId String   @db.ObjectId
+  order       Int
+  question    String
+  answer      String
+  keywords    String[]
+  topics      String[]
+
+  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String @db.ObjectId
+  interviewId String @db.ObjectId
+
+  user      User      @relation(fields: [userId], references: [id])
+  interview Interview @relation(fields: [interviewId], references: [id])
+
+  @@unique([userId, interviewId])
+}
+
+model Candidate {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String @db.ObjectId
+  interviewId String @db.ObjectId
+
+  user      User      @relation(fields: [userId], references: [id])
+  interview Interview @relation(fields: [interviewId], references: [id])
+
+  @@unique([userId, interviewId])
+}
+
+enum Difficulty {
+  beginner
+  intermediate
+  advanced
+}
+
+enum InterviewMode {
+  custom
+  ai
+}
+
+enum Visibility {
+  public
+  private
+}

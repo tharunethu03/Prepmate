@@ -18,18 +18,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        suppressHydrationWarning
-        className={`${inter.className} antialiased auth-light`}
-      >
-        <div className="flex flex-col justify-center-safe items-center h-screen p-10">
-          {children}
-          <p className="text-xs text-tertiary align-bottom items-baseline p-5">
-            Version 1.0.0 © 2025 PREPMATE
-          </p>
-        </div>
-      </body>
-    </html>
+    
+      <div className="flex flex-col justify-center-safe items-center h-screen p-10">
+        {children}
+        <p className="text-xs text-tertiary align-bottom items-baseline p-5">
+          Version 1.0.0 © 2025 PREPMATE
+        </p>
+      </div>
+    
   );
 }

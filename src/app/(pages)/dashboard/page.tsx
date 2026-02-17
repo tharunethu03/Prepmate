@@ -1,11 +1,41 @@
 "use client";
 import OnboardingOverlay from "@/app/(auth)/onboarding/page";
+import InterviewModal from "@/components/ui/interview-modal";
+import { LoaderOne } from "@/components/ui/loader";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { log } from "node:console";
+import { useEffect, useState } from "react";
+
+type Interview = {
+  id: string;
+  title: string;
+  role: string;
+  difficulty: string;
+  visibility: string;
+  topics: string[];
+  questionCount: number;
+  createdBy: string;
+
+  likes: number;
+  isLiked: boolean;
+
+  creator: {
+    id: string;
+    name: string | null;
+    avatar: string | null;
+  };
+
+  candidates: {
+    id: string;
+    avatar: string | null;
+  }[];
+};
 
 const DashboardPage = () => {
   const { data: session, status } = useSession();
   const [dismissed, setDismissed] = useState(false);
+  const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const showOnboarding =
     status === "authenticated" &&
@@ -19,8 +49,46 @@ const DashboardPage = () => {
     });
   };
 
+  useEffect(() => {
+    const fetchInterviews = async () => {
+      try {
+        const res = await fetch(
+          "/api/interviews?visibility=public&trending=true&page=1&limit=10",
+        );
+        const data = await res.json();
+
+        console.log("Fetched interviews:", data);
+
+        setInterviews(data.interviews ?? []);
+      } catch (error) {
+        console.log("Failed to fetch interviews", error);
+        setInterviews([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInterviews();
+  }, []);
+
   return (
-    <div>{showOnboarding && <OnboardingOverlay onFinish={handleClose} />}</div>
+    <div className="py-5">
+      <h2>Top Interviews This Month</h2>
+      <div>
+        {loading && (
+          <div className="flex items-center justify-center h-full">
+            <LoaderOne />
+          </div>
+        )}
+      </div>
+      <div className="flex flex-row md:flex-wrap gap-x-3 gap-y-5 overflow-x-auto mt-5 scrollbar-hide">
+        {interviews.map((interview) => (
+          <InterviewModal key={interview.id} interview={interview} />
+        ))}
+      </div>
+
+      {showOnboarding && <OnboardingOverlay onFinish={handleClose} />}
+    </div>
   );
 };
 
