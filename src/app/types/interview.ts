@@ -10,6 +10,7 @@ export type Interview = {
 
   likes: number;
   isLiked: boolean;
+  isSaved: boolean;   
 
   creator: {
     id: string;

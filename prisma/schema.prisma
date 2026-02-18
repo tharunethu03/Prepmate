@@ -35,8 +35,9 @@ model User {
   likes       Like[]
   candidacies Candidate[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  savedInterviews SavedInterview[]
 }
 
 model Account {
@@ -79,7 +80,8 @@ model Interview {
 
   createdAt DateTime @default(now())
 
-  questions Question[]
+  questions       Question[]
+  savedInterviews SavedInterview[]
 }
 
 model Question {
@@ -95,6 +97,17 @@ model Question {
 }
 
 model Like {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String @db.ObjectId
+  interviewId String @db.ObjectId
+
+  user      User      @relation(fields: [userId], references: [id])
+  interview Interview @relation(fields: [interviewId], references: [id])
+
+  @@unique([userId, interviewId])
+}
+
+model SavedInterview {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
   userId      String @db.ObjectId
   interviewId String @db.ObjectId

@@ -9,13 +9,11 @@ import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
-  useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { SortableQuestion } from "@/components/ui/sortable-question";
-import { useRouter } from "next/navigation";
 import { Interview } from "@/app/types/interview";
 
 type Question = {
@@ -54,8 +52,6 @@ export default function InterviewPreview({
   const avatar = session?.user?.avatar;
   const userName = session?.user?.name;
   const [questions, setQuestions] = useState(data.questions);
-
-  const router = useRouter();
 
   const difficultyLevel = data.difficulty;
 
@@ -98,8 +94,8 @@ export default function InterviewPreview({
 
       const createdInterview: Interview = await res.json();
 
-      onCreate(createdInterview); // ✅ call parent to update state
-      onConfirm(); // close preview
+      onCreate(createdInterview);
+      onConfirm();
     } catch (error) {
       console.error(error);
     }

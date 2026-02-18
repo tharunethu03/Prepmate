@@ -103,6 +103,7 @@ export async function GET(req: Request) {
     const trending = searchParams.get("trending");
     const page = Number(searchParams.get("page")) || 1;
     const limit = Number(searchParams.get("limit")) || 10;
+    const saved = searchParams.get("saved");
 
     const session = await getServerSession(authOptions);
 
@@ -142,6 +143,15 @@ export async function GET(req: Request) {
       where.createdAt = { gte: thirtyDaysAgo, lte: now };
     }
 
+    //saved
+    if (saved) {
+      where.savedInterviews = {
+        some: {
+          userId: session?.user.id,
+        },
+      };
+    }
+
     // Build the query object dynamically
     const interviews = await prisma.interview.findMany({
       where,
@@ -160,6 +170,9 @@ export async function GET(req: Request) {
           where: session ? { userId: session.user.id } : undefined,
           select: { id: true },
         },
+        savedInterviews: session
+          ? { where: { userId: session.user.id }, select: { id: true } }
+          : false,
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -181,6 +194,8 @@ export async function GET(req: Request) {
 
       //Did current user like it?
       isLiked: session ? i.likes.length > 0 : false,
+
+      isSaved: session ? (i.savedInterviews?.length ?? 0) > 0 : false,
 
       candidateCount: i._count.candidates,
 

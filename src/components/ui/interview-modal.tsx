@@ -13,6 +13,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { motion } from "framer-motion";
 import { Button } from "./button";
 import { Interview } from "@/app/types/interview";
+import { useRouter } from "next/navigation";
 
 type InterviewModalProps = {
   interview: Interview;
@@ -20,13 +21,15 @@ type InterviewModalProps = {
 };
 
 const InterviewModal = ({ interview, onDelete }: InterviewModalProps) => {
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(interview.isSaved);
   const [likes, setLikes] = useState(interview.likes);
   const [liked, setLiked] = useState(interview.isLiked);
   const [deletemodal, setDeleteModal] = useState(false);
 
   const { data: session } = useSession();
   const userid = session?.user?.id;
+
+  const router = useRouter();
 
   let color;
 
@@ -75,6 +78,29 @@ const InterviewModal = ({ interview, onDelete }: InterviewModalProps) => {
       }
     } catch (error) {
       console.log("Error liking interview", error);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!session) return;
+
+    try {
+      const res = await fetch(`/api/interviews/${interview.id}/save`, {
+        method: "POST",
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+
+      setSaved(data.saved);
+
+      // Remove from UI instantly if unsaved
+      if (!data.saved) {
+        onDelete(interview.id);
+      }
+    } catch (error) {
+      console.log("Error saving interview", error);
     }
   };
 
@@ -154,7 +180,7 @@ const InterviewModal = ({ interview, onDelete }: InterviewModalProps) => {
                 </motion.button>
 
                 <motion.button
-                  onClick={() => setSaved(!saved)}
+                  onClick={handleSave}
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.9 }}
                 >

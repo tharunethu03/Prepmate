@@ -1,35 +1,11 @@
 "use client";
 import OnboardingOverlay from "@/app/(auth)/onboarding/page";
+import { Interview } from "@/app/types/interview";
 import InterviewModal from "@/components/ui/interview-modal";
 import { LoaderOne } from "@/components/ui/loader";
 import { useSession } from "next-auth/react";
-import { log } from "node:console";
 import { useEffect, useState } from "react";
 
-type Interview = {
-  id: string;
-  title: string;
-  role: string;
-  difficulty: string;
-  visibility: string;
-  topics: string[];
-  questionCount: number;
-  createdBy: string;
-
-  likes: number;
-  isLiked: boolean;
-
-  creator: {
-    id: string;
-    name: string | null;
-    avatar: string | null;
-  };
-
-  candidates: {
-    id: string;
-    avatar: string | null;
-  }[];
-};
 
 const DashboardPage = () => {
   const { data: session, status } = useSession();
@@ -83,7 +59,13 @@ const DashboardPage = () => {
       </div>
       <div className="flex flex-row md:flex-wrap gap-x-3 gap-y-5 overflow-x-auto mt-5 scrollbar-hide">
         {interviews.map((interview) => (
-          <InterviewModal key={interview.id} interview={interview} />
+          <InterviewModal
+            key={interview.id}
+            interview={interview}
+            onDelete={(id) =>
+              setInterviews((prev) => prev.filter((i) => i.id !== id))
+            }
+          />
         ))}
       </div>
 
