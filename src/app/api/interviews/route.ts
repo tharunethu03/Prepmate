@@ -165,6 +165,15 @@ export async function GET(req: Request) {
           take: 5,
           include: { user: { select: { id: true, avatar: true } } },
         },
+        questions: {
+          orderBy: { order: "asc" }, // VERY IMPORTANT
+          select: {
+            id: true,
+            question: true,
+            answer: true,
+            keywords: true,
+          },
+        },
         _count: { select: { candidates: true, likes: true } },
         likes: {
           where: session ? { userId: session.user.id } : undefined,
@@ -188,6 +197,7 @@ export async function GET(req: Request) {
       topics: i.topics,
       questionCount: i.questionCount,
       createdBy: i.createdBy,
+      description: i.description,
 
       //Total likes count
       likes: i._count.likes,
@@ -205,6 +215,13 @@ export async function GET(req: Request) {
       candidates: i.candidates.map((c) => ({
         id: c.user.id,
         avatar: c.user.avatar,
+      })),
+
+      questions: i.questions.map((q) => ({
+        id: q.id,
+        question: q.question,
+        answer: q.answer,
+        keywords: q.keywords,
       })),
     }));
 

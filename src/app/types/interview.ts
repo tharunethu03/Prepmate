@@ -8,9 +8,17 @@ export type Interview = {
   questionCount: number;
   createdBy: string;
 
+  description: string;
+  questions: {
+    id: string;
+    question: string;
+    answer: string;
+    keywords: string[];
+  }[];
+
   likes: number;
   isLiked: boolean;
-  isSaved: boolean;   
+  isSaved: boolean;
 
   creator: {
     id: string;

@@ -1,12 +1,16 @@
 "use client";
 import { Interview } from "@/app/types/interview";
 import InterviewModal from "@/components/ui/interview-modal";
+import InterviewPreviewModal from "@/components/ui/interview-preview-modal";
 import { LoaderOne } from "@/components/ui/loader";
 import React, { useEffect, useState } from "react";
 
 const SavedInterviewPage = () => {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(
+    null,
+  );
 
   useEffect(() => {
     const fetchInterviews = async () => {
@@ -45,9 +49,19 @@ const SavedInterviewPage = () => {
             onDelete={(id) =>
               setInterviews((prev) => prev.filter((i) => i.id !== id))
             }
+            onPreview={() => setSelectedInterview(interview)}
           />
         ))}
       </div>
+      {selectedInterview && (
+        <InterviewPreviewModal
+          interview={selectedInterview}
+          onDelete={(id) =>
+            setInterviews((prev) => prev.filter((i) => i.id !== id))
+          }
+          onClose={() => setSelectedInterview(null)}
+        />
+      )}
     </div>
   );
 };

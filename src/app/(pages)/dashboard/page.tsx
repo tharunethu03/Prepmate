@@ -2,16 +2,19 @@
 import OnboardingOverlay from "@/app/(auth)/onboarding/page";
 import { Interview } from "@/app/types/interview";
 import InterviewModal from "@/components/ui/interview-modal";
+import InterviewPreviewModal from "@/components/ui/interview-preview-modal";
 import { LoaderOne } from "@/components/ui/loader";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
-
 const DashboardPage = () => {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const [dismissed, setDismissed] = useState(false);
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(
+    null,
+  );
 
   const showOnboarding =
     status === "authenticated" &&
@@ -23,6 +26,7 @@ const DashboardPage = () => {
     await fetch("/api/onboarding/complete", {
       method: "POST",
     });
+    await update();
   };
 
   useEffect(() => {
@@ -62,14 +66,18 @@ const DashboardPage = () => {
           <InterviewModal
             key={interview.id}
             interview={interview}
-            onDelete={(id) =>
-              setInterviews((prev) => prev.filter((i) => i.id !== id))
-            }
+            onPreview={() => setSelectedInterview(interview)}
           />
         ))}
       </div>
 
       {showOnboarding && <OnboardingOverlay onFinish={handleClose} />}
+      {selectedInterview && (
+        <InterviewPreviewModal
+          interview={selectedInterview}
+          onClose={() => setSelectedInterview(null)}
+        />
+      )}
     </div>
   );
 };

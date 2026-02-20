@@ -21,7 +21,7 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      name: string;
+      name: string | null;
       email: string;
       role: string;
       avatar: string | null;
@@ -40,7 +40,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
-    name: string;
+    name: string | null;
     email: string;
     role: string;
     avatar: string | null;
@@ -137,6 +137,7 @@ export const authOptions: NextAuthOptions = {
         token.linkedinLink = session.linkedinLink;
         token.githubLink = session.githubLink;
         token.profileCompleted = session.profileCompleted;
+        token.onboardingCompleted = session.onboardingCompleted;
       }
 
       return token;

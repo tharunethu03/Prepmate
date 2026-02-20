@@ -9,11 +9,15 @@ import InterviewForm from "./interviewForm";
 import InterviewModal from "@/components/ui/interview-modal";
 import { LoaderOne } from "@/components/ui/loader";
 import { Interview } from "@/app/types/interview";
+import InterviewPreviewModal from "@/components/ui/interview-preview-modal";
 
 const CreateInterviewPage = () => {
   const [openForm, setOpenForm] = useState(false);
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(
+    null,
+  );
 
   const handleCreateInterview = (newInterview: Interview) => {
     setInterviews((prev) => [newInterview, ...prev]);
@@ -81,6 +85,7 @@ const CreateInterviewPage = () => {
               onDelete={(id) =>
                 setInterviews((prev) => prev.filter((i) => i.id !== id))
               }
+              onPreview={() => setSelectedInterview(interview)}
             />
           ))}
         </div>
@@ -89,6 +94,15 @@ const CreateInterviewPage = () => {
         <InterviewForm
           onFinish={() => setOpenForm(false)}
           onCreate={handleCreateInterview}
+        />
+      )}
+      {selectedInterview && (
+        <InterviewPreviewModal
+          interview={selectedInterview}
+          onDelete={(id) =>
+            setInterviews((prev) => prev.filter((i) => i.id !== id))
+          }
+          onClose={() => setSelectedInterview(null)}
         />
       )}
     </div>

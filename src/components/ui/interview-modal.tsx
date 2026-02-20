@@ -17,10 +17,15 @@ import { useRouter } from "next/navigation";
 
 type InterviewModalProps = {
   interview: Interview;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
+  onPreview: () => void;
 };
 
-const InterviewModal = ({ interview, onDelete }: InterviewModalProps) => {
+const InterviewModal = ({
+  interview,
+  onDelete,
+  onPreview,
+}: InterviewModalProps) => {
   const [saved, setSaved] = useState(interview.isSaved);
   const [likes, setLikes] = useState(interview.likes);
   const [liked, setLiked] = useState(interview.isLiked);
@@ -53,7 +58,7 @@ const InterviewModal = ({ interview, onDelete }: InterviewModalProps) => {
       console.log("Interview deleted:", data);
 
       setDeleteModal(false);
-      onDelete(interview.id);
+      onDelete?.(interview.id);
     } catch (error) {
       console.log("Error deleting interview", error);
     }
@@ -97,7 +102,7 @@ const InterviewModal = ({ interview, onDelete }: InterviewModalProps) => {
 
       // Remove from UI instantly if unsaved
       if (!data.saved) {
-        onDelete(interview.id);
+        onDelete?.(interview.id);
       }
     } catch (error) {
       console.log("Error saving interview", error);
@@ -106,7 +111,10 @@ const InterviewModal = ({ interview, onDelete }: InterviewModalProps) => {
 
   return (
     <TooltipPrimitive.Provider delayDuration={1000}>
-      <div className="flex flex-col gap-3 w-full sm:w-fit shadow-lg min-w-[200px]  max-w-[300px] md:max-w-100 min-h-65 bg-foreground border-2 border-border px-4 sm:px-8 py-4 sm:py-5 rounded-[22px]">
+      <div
+        onClick={onPreview}
+        className="flex flex-col gap-3 w-full sm:w-fit shadow-lg min-w-[200px]  max-w-[300px] md:max-w-100 min-h-65 bg-foreground border-2 border-border px-4 sm:px-8 py-4 sm:py-5 rounded-[22px] hover:scale-102 transition-transform cursor-pointer"
+      >
         <h2 className="text-sm sm:text-lg font-semibold">{interview.title}</h2>
 
         <div className="flex flex-wrap gap-2 sm:gap-2">
@@ -168,7 +176,10 @@ const InterviewModal = ({ interview, onDelete }: InterviewModalProps) => {
             {interview.createdBy !== userid && (
               <div className="flex gap-2 items-center">
                 <motion.button
-                  onClick={handleLike}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLike();
+                  }}
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.9 }}
                   className="flex items-center gap-1"
@@ -180,7 +191,10 @@ const InterviewModal = ({ interview, onDelete }: InterviewModalProps) => {
                 </motion.button>
 
                 <motion.button
-                  onClick={handleSave}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSave();
+                  }}
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -193,7 +207,10 @@ const InterviewModal = ({ interview, onDelete }: InterviewModalProps) => {
 
             {interview.createdBy === userid && (
               <motion.button
-                onClick={() => setDeleteModal(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteModal(true);
+                }}
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -206,7 +223,7 @@ const InterviewModal = ({ interview, onDelete }: InterviewModalProps) => {
 
       {deletemodal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 px-4">
-          <div className="bg-foreground border border-border rounded-[22px] shadow-lg p-5 sm:p-10 max-w-[400px] w-full">
+          <div className="bg-foreground border border-border rounded-[22px] shadow-lg p-5 sm:p-10 max-w-100 w-full">
             <div className="flex flex-col items-center justify-center gap-3">
               <h3 className="text-lg font-semibold">Delete Interview?</h3>
               <p className="text-sm text-center max-w-xs">

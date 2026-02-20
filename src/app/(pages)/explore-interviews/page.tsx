@@ -1,35 +1,15 @@
 "use client";
+import { Interview } from "@/app/types/interview";
 import InterviewModal from "@/components/ui/interview-modal";
+import InterviewPreviewModal from "@/components/ui/interview-preview-modal";
 import React, { useEffect, useState } from "react";
-
-type Interview = {
-  id: string;
-  title: string;
-  role: string;
-  difficulty: string;
-  visibility: string;
-  topics: string[];
-  questionCount: number;
-  createdBy: string;
-
-  likes: number;
-  isLiked: boolean;
-
-  creator: {
-    id: string;
-    name: string | null;
-    avatar: string | null;
-  };
-
-  candidates: {
-    id: string;
-    avatar: string | null;
-  }[];
-};
 
 const ExplorePage = () => {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(
+    null,
+  );
 
   useEffect(() => {
     const fetchPopularInterviews = async () => {
@@ -54,9 +34,19 @@ const ExplorePage = () => {
     <div>
       <div className="flex flex-wrap gap-x-3 gap-y-5 mt-5 pb-5">
         {interviews.map((interview) => (
-          <InterviewModal key={interview.id} interview={interview} />
+          <InterviewModal
+            key={interview.id}
+            interview={interview}
+            onPreview={() => setSelectedInterview(interview)}
+          />
         ))}
       </div>
+      {selectedInterview && (
+        <InterviewPreviewModal
+          interview={selectedInterview}
+          onClose={() => setSelectedInterview(null)}
+        />
+      )}
     </div>
   );
 };
