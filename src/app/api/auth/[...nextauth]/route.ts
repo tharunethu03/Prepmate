@@ -1,4 +1,3 @@
-import { User } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { compare } from "bcrypt";
 import NextAuth, { type NextAuthOptions } from "next-auth";
@@ -10,12 +9,18 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 declare module "next-auth" {
   interface User {
     id: string;
-    name: string;
+    name: string | null;
     email: string;
     role: string;
     avatar: string | null;
     profileCompleted: boolean;
     onboardingCompleted: boolean;
+    roleTitle: string | null;
+    field: string | null;
+    creatorRequest: boolean;
+    portfolioLink: string | null;
+    linkedinLink: string | null;
+    githubLink: string | null;
   }
 
   interface Session {
@@ -46,12 +51,12 @@ declare module "next-auth/jwt" {
     avatar: string | null;
     profileCompleted: boolean;
     onboardingCompleted: boolean;
-    roleTitle?: string;
-    field?: string;
+    roleTitle?: string | null;
+    field?: string | null;
     creatorRequest?: boolean;
-    portfolioLink?: string;
-    linkedinLink?: string;
-    githubLink?: string;
+    portfolioLink?: string | null;
+    linkedinLink?: string | null;
+    githubLink?: string | null;
   }
 }
 
@@ -86,7 +91,7 @@ export const authOptions: NextAuthOptions = {
           placeholder: "Enter your password",
         },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials.password) return null;
 
         const user = await prisma.user.findUnique({
@@ -102,17 +107,38 @@ export const authOptions: NextAuthOptions = {
 
         return {
           id: user.id,
-          name: user.name || "",
+          name: user.name,
           email: user.email,
-          role: user.role || "STUDENT",
+          role: user.role,
           avatar: user.avatar,
           profileCompleted: user.profileCompleted,
           onboardingCompleted: user.onboardingCompleted,
+          roleTitle: user.roleTitle,
+          field: user.field,
+          creatorRequest: user.creatorRequest,
+          portfolioLink: user.portfolioLink,
+          linkedinLink: user.linkedinLink,
+          githubLink: user.githubLink,
         };
       },
     }),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      // Only for OAuth
+      if (account?.provider === "google" || account?.provider === "github") {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+        });
+
+        // Redirect if profile not completed
+        if (existingUser && !existingUser.profileCompleted) {
+          return "/profile-setup";
+        }
+      }
+
+      return true; // allow login
+    },
     // JWT token contains all info needed for session
     async jwt({ token, user, trigger, session }) {
       // First login
@@ -122,22 +148,35 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.avatar = user.avatar;
         token.role = user.role;
-        token.profileCompleted = user.profileCompleted;
-        token.onboardingCompleted = user.onboardingCompleted;
+        token.profileCompleted = user.profileCompleted ?? false;
+        token.onboardingCompleted = user.onboardingCompleted ?? false;
+        token.roleTitle = user.roleTitle;
+        token.field = user.field;
+        token.creatorRequest = user.creatorRequest;
+        token.portfolioLink = user.portfolioLink;
+        token.linkedinLink = user.linkedinLink;
+        token.githubLink = user.githubLink;
       }
 
       if (trigger === "update" && session) {
-        token.name = session.name;
-        token.avatar = session.avatar;
-        token.role = session.role;
-        token.roleTitle = session.roleTitle;
-        token.field = session.field;
-        token.creatorRequest = session.creatorRequest;
-        token.portfolioLink = session.portfolioLink;
-        token.linkedinLink = session.linkedinLink;
-        token.githubLink = session.githubLink;
-        token.profileCompleted = session.profileCompleted;
-        token.onboardingCompleted = session.onboardingCompleted;
+        console.log("JWT UPDATE TRIGGERED");
+
+        const updatedUser = await prisma.user.findUnique({
+          where: { id: token.id },
+        });
+        if (updatedUser) {
+          token.name = updatedUser.name;
+          token.avatar = updatedUser.avatar;
+          token.role = updatedUser.role;
+          token.profileCompleted = updatedUser.profileCompleted;
+          token.onboardingCompleted = updatedUser.onboardingCompleted;
+          token.roleTitle = updatedUser.roleTitle;
+          token.field = updatedUser.field;
+          token.creatorRequest = updatedUser.creatorRequest;
+          token.portfolioLink = updatedUser.portfolioLink;
+          token.linkedinLink = updatedUser.linkedinLink;
+          token.githubLink = updatedUser.githubLink;
+        }
       }
 
       return token;
@@ -166,8 +205,9 @@ export const authOptions: NextAuthOptions = {
 
     // Handle redirect after login
     redirect: async ({ url, baseUrl }) => {
-      // Always allow default redirects
-      return url.startsWith(baseUrl) ? url : baseUrl;
+      if (url.startsWith(baseUrl)) return url;
+      else if (url.startsWith("/")) return new URL(url, baseUrl).toString();
+      return baseUrl;
     },
   },
 };
