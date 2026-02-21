@@ -1,83 +1,85 @@
-# PREPMATE 🎓📚  
-**Your Smart Companion for Exam Preparation**
+<img width="314" height="50" alt="logo-text" src="https://github.com/user-attachments/assets/1d1dc2e8-ae91-4448-8300-b24bd9423f53" />
 
-PREPMATE is a Final Year Project (FYP) designed to help students prepare effectively for exams using a combination of smart planning, AI assistance, and progress tracking. The platform focuses on improving productivity, reducing last-minute stress, and guiding students with personalized study support.
+**AI-Powered Gamified Web Platform for Interactive Interview Preparation**
+
+PREPMATE is a Final Year Project (FYP) designed to help students and job seekers prepare for interviews effectively. By combining AI-driven question generation, real-time feedback, and gamification, the platform creates a personalized and engaging learning experience.
 
 ---
 
 ## 🚀 Project Overview
 
-PREPMATE aims to solve common problems faced by students such as:
-- Poor time management
-- Lack of structured study plans
-- Difficulty tracking progress
-- No personalized guidance during preparation
+Traditional interview preparation is often generic and unstructured, leaving users uncertain, nervous, and underprepared. Existing platforms provide the same content for all users, failing to adapt to skill levels or provide meaningful feedback. PREPMATE addresses these challenges by:
+- Delivering personalized interview questions based on user profile and skill level
+- Providing instant AI feedback on open-ended answers
+- Motivating users through gamification: points, badges, leaderboards
+- Enabling social and collaborative features: challenge friends and share progress
 
-The system acts as a **study companion**, helping students plan, track, and optimize their exam preparation journey.
+The platform supports structured, efficient, and engaging interview preparation.
 
 ---
 
 ## ✨ Key Features
 
-- 🗂️ **Study Plan Management**
-  - Create and manage subject-wise study plans
-  - Set goals and deadlines
+- **AI-Powered Interview Assistance**
+  - Personalized question recommendations based on role and difficulty
+  - Real-time AI feedback for open-ended and behavioral questions
 
-- 🤖 **AI-Powered Assistance**
-  - Smart suggestions for study scheduling
-  - Guidance based on progress and performance
+- **Gamification**
+  - Points, badges, levels, and leaderboards to keep users motivated
+  - Track achievements and progress over time
 
-- 📊 **Progress Tracking**
-  - Track completed tasks and pending work
-  - Visual indicators for progress monitoring
+- **User Dashboard**
+  - Visual summary of completed sessions, progress, and feedback
+  - Easy navigation for performance insights
 
-- 🔔 **Reminders & Notifications**
-  - Timely alerts for study sessions and deadlines
+- **Secure Authentication**
+  - User accounts with secure login and profile management
 
-- 👤 **User Authentication**
-  - Secure login and user-specific data handling
+- **Collaboration & Social Features**
+  - Challenge friends and share performance
+  - Create custom mock interviews
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- React / React Native *(depending on implementation)*
-- Tailwind CSS / Custom UI components
+- Next.js 16, React
+- Tailwind CSS 
 
 ### Backend
-- Node.js
-- Express.js
+- Next.js 16 Server actions
 
 ### Database
-- MongoDB / Firebase Firestore
+- MongoDB Atlas
 
 ### AI & Logic
-- OpenAI API (for AI assistant features)
-- Custom logic for study recommendations
+- OpenAI API (GPT-4o) for question generation and feedback
+- Rule-based scoring for gamification
 
 ### Other Tools
-- Firebase Authentication
+- NextAuth.js for authentication
 - Git & GitHub for version control
 
 ---
 
 ## 🧠 System Architecture
 
+PREPMATE follows a client-server model:
 - Client-side application for user interaction
 - REST API for data communication
 - Database for persistent storage
-- AI module for intelligent recommendations
-
+- AI module for generate questions and feedback dynamically
+  
 ---
 
 ## 📌 Methodology
 
-The project follows a **hybrid development approach**, combining elements of:
-- Rapid Application Development (RAD)
-- Verification & Validation principles
-
-This allows faster feature iteration while maintaining system reliability.
+PREPMATE uses a hybrid approach:
+- Prototype-based and experimental design for iterative development
+- Agile methodology to continuously refine AI feedback and UI/UX
+- Early testing of AI integration and gamification to ensure effectiveness
+- Ethical handling of anonymized user data
 
 ---
 
@@ -104,23 +106,24 @@ This allows faster feature iteration while maintaining system reliability.
 
 ## 🧪 Testing
 
-- Unit testing for core functionalities
-- Manual testing for UI/UX validation
-- Functional testing for authentication and data flow
+- Unit Testing: Core functionality
+- Functional Testing: AI question generation and feedback, gamification
+- Manual UI Testing: Usability and responsiveness
+- Performance Testing: Platform stability under multiple users
 
 ---
 
 ## 🎯 Future Enhancements
 
-- Advanced AI-based performance prediction
-- Collaborative study groups
-- Gamification features (badges, streaks)
-- Mobile-first optimization
-- Cloud-based analytics dashboard
+- Advanced AI performance prediction
+- Collaborative study and mock interview groups
+- Enhanced gamification with streaks and achievements
+- Mobile-first responsive design
+- Cloud analytics dashboard for performance insights
 
 ---
 
-## 👨‍💻 Developers
+## 🧑🏾‍💻 Developers
 
 - **Tharunethu Gampola**  
   Final Year Undergraduate  
@@ -138,4 +141,4 @@ All rights reserved.
 
 ---
 
-> *“Study smarter, not harder – with PREPMATE.”*
+> *“Practice smarter, get ready faster – with PREPMATE.”*
