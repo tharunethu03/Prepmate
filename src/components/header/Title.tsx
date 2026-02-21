@@ -92,6 +92,22 @@ const Title = () => {
       ),
       subtitle: "Make PREPMATE work just the way you like.",
     },
+    "/profile": {
+      title: (
+        <>
+          <span className="text-accent">Profile</span>
+        </>
+      ),
+      subtitle: "Your journey on PREPMATE so far.",
+    },
+    "/add-friends": {
+      title: (
+        <>
+          Add<span className="text-accent"> Friends</span>
+        </>
+      ),
+      subtitle: "Your Circle Starts Here",
+    },
   };
 
   const pathname = usePathname();

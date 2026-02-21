@@ -42,8 +42,13 @@ export async function POST(req: Request) {
     updatedSessionData: {
       name: body.name,
       roleTitle: body.roleTitle,
+      field: body.field,
       avatar: body.selectedAvatar,
       profileCompleted: true,
+      creatorRequest: body.accountType === "creator",
+      portfolioLink: body.portfolioLink,
+      linkedinLink: body.linkedinLink,
+      githubLink: body.githubLink,
     },
   });
 }

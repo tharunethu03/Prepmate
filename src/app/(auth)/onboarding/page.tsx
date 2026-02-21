@@ -111,7 +111,7 @@ export default function OnboardingOverlay({
   };
 
   const skip = () => {
-    setIsFinishing(true); // trigger logo animation + fade out slides
+    setIsFinishing(true);
   };
 
   const isImageLeft = [1, 3].includes(onboardingSlides[currentSlide].id);
@@ -169,10 +169,7 @@ export default function OnboardingOverlay({
                   <span />
 
                   {onboardingSlides[currentSlide].id === 4 ? (
-                    <div className="flex flex-row text-background text-sm items-center ">
-                      Skip
-                      <ChevronsRight size={20} />
-                    </div>
+                    <div className="flex flex-row text-background text-sm items-center "></div>
                   ) : (
                     <button
                       onClick={skip}

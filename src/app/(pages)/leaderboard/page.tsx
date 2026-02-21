@@ -1,11 +1,7 @@
-import React from 'react'
+"use client";
 
-const page = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+const LeaderboardPage = () => {
+  return <div></div>;
+};
 
-export default page
+export default LeaderboardPage;

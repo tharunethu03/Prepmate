@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { NextResponse } from "next/server";
 
 export async function POST() {
   const session = await getServerSession(authOptions);
@@ -12,5 +13,10 @@ export async function POST() {
     data: { onboardingCompleted: true },
   });
 
-  return Response.json({ success: true });
+  return NextResponse.json({
+    success: true,
+    updatedSessionData: {
+      onboardingCompleted: true,
+    },
+  });
 }

@@ -13,15 +13,15 @@ function Input({ className, type, passwordToggle, ...props }: InputProps) {
   const inputType = isPassword ? (show ? "text" : "password") : type;
 
   return (
-    <div className="relative w-fit">
+    <div className="relative w-full">
       <input
         type={inputType}
         data-slot="input"
         className={cn(
-          "file:text-foreground placeholder:text-tertiary selection:bg-primary selection:text-primary dark:bg-input/30 border-border h-[45px] w-[350px] md:w-[450px] min-w-0 rounded-[12px] border bg-foreground px-3 pr-10 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+          "file:text-foreground placeholder:text-tertiary selection:bg-accent/50 selection:text-primary dark:bg-input/30 border-border h-[45px] w-[350px] md:w-[450px] min-w-0 rounded-[12px] border bg-foreground px-3 pr-10 py-1 text-base  shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
           "focus-visible:border-accent",
           "aria-invalid:border-destructive",
-          className
+          className,
         )}
         {...props}
       />
