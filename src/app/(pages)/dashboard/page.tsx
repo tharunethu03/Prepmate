@@ -5,6 +5,7 @@ import InterviewModal from "@/components/ui/interview-modal";
 import InterviewPreviewModal from "@/components/ui/interview-preview-modal";
 import { LoaderOne } from "@/components/ui/loader";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const DashboardPage = () => {
@@ -16,17 +17,22 @@ const DashboardPage = () => {
     null,
   );
 
+  const router = useRouter();
+
   const showOnboarding =
     status === "authenticated" &&
     session?.user?.onboardingCompleted === false &&
     !dismissed;
 
   const handleClose = async () => {
-    setDismissed(true);
     await fetch("/api/onboarding/complete", {
       method: "POST",
     });
-    await update();
+    await update({
+      onboardingCompleted: true,
+    });
+    setDismissed(true);
+    router.refresh();
   };
 
   useEffect(() => {
