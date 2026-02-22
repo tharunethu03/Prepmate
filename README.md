@@ -1,6 +1,14 @@
-<img width="314" height="50" alt="logo-text" src="https://github.com/user-attachments/assets/1d1dc2e8-ae91-4448-8300-b24bd9423f53" />
+<p align="center">
+  <img width="314" height="50" alt="logo-text" src="https://github.com/user-attachments/assets/1d1dc2e8-ae91-4448-8300-b24bd9423f53" />
+</p>
 
-**AI-Powered Gamified Web Platform for Interactive Interview Preparation**
+
+
+<p align="center">
+  AI-Powered Gamified Web Platform for Interactive Interview Preparation
+</p>
+
+<br>
 
 PREPMATE is a Final Year Project (FYP) designed to help students and job seekers prepare for interviews effectively. By combining AI-driven question generation, real-time feedback, and gamification, the platform creates a personalized and engaging learning experience.
 
