@@ -8,7 +8,7 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Avatar,
   AvatarFallback,
@@ -19,8 +19,8 @@ import {
 import { Button } from "./button";
 import { motion } from "framer-motion";
 import { Interview } from "@/app/types/interview";
-import { getServerSession } from "next-auth";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type InterviewPreviewModalProps = {
   interview: Interview;
@@ -40,6 +40,8 @@ const InterviewPreviewModal = ({
   const [deletemodal, setDeleteModal] = useState(false);
 
   const session = useSession();
+
+  const router = useRouter();
 
   const handleSave = async () => {
     if (!session) return;
@@ -229,7 +231,7 @@ const InterviewPreviewModal = ({
               )}
             </div>
             <div className="flex items-center gap-5">
-              <Button>
+              <Button onClick={() => router.push(`/interview/${interview.id}`)}>
                 Start Interview <ChevronRight />
               </Button>
             </div>
