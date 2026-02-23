@@ -3,6 +3,45 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+type Props = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export async function GET(req: Request, { params }: Props) {
+  try {
+    const { id } = await params; // ✅ MUST unwrap
+
+    const interview = await prisma.interview.findUnique({
+      where: { id },
+      include: {
+        questions: {
+          orderBy: { order: "asc" },
+        },
+        creator: {
+          select: { id: true, name: true, avatar: true },
+        },
+      },
+    });
+
+    if (!interview) {
+      return NextResponse.json(
+        { error: "Interview not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json(interview);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { error: "Failed to fetch interview" },
+      { status: 500 },
+    );
+  }
+}
+
 export async function DELETE(
   req: Request,
   context: { params: Promise<{ id: string }> },
