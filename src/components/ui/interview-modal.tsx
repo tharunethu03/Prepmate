@@ -154,22 +154,22 @@ const InterviewModal = ({
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-auto text-end gap-2 sm:gap-0">
           <div className="mb-2 sm:mb-0">
-            <AvatarGroup>
-              {interview.candidates?.slice(0, 5).map((candidate) => (
-                <Avatar key={candidate.id}>
-                  <AvatarImage
-                    src={candidate.avatar || "/profile-setup/avatar1.png"}
-                    alt="candidate-avatar"
-                  />
-                  <AvatarFallback>C</AvatarFallback>
-                </Avatar>
-              ))}
-              {interview.candidates.length > 5 && (
-                <AvatarGroupCount>
-                  +{interview.candidates?.length - 5}
-                </AvatarGroupCount>
-              )}
-            </AvatarGroup>
+<AvatarGroup>
+  {interview.recentAttemptees?.slice(0, 5).map((attemptee) => (
+    <Avatar key={attemptee.id}>
+      <AvatarImage
+        src={attemptee.avatar || "/profile-setup/avatar1.png"}
+        alt="attemptee-avatar"
+      />
+      <AvatarFallback>C</AvatarFallback>
+    </Avatar>
+  ))}
+  {(interview.attemptCount ?? 0) > 5 && (
+    <AvatarGroupCount>
+      +{(interview.attemptCount ?? 0) - 5}
+    </AvatarGroupCount>
+  )}
+</AvatarGroup>
           </div>
 
           <div className="flex flex-wrap gap-2 sm:gap-4 items-center">

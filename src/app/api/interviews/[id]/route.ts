@@ -4,24 +4,40 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 type Props = {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 };
 
 export async function GET(req: Request, { params }: Props) {
   try {
-    const { id } = await params; // ✅ MUST unwrap
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
 
     const interview = await prisma.interview.findUnique({
       where: { id },
       include: {
-        questions: {
-          orderBy: { order: "asc" },
-        },
-        creator: {
-          select: { id: true, name: true, avatar: true },
-        },
+        questions: { orderBy: { order: "asc" } },
+        creator: { select: { id: true, name: true, avatar: true } },
+        _count: { select: { attempts: true, likes: true } },
+        likes: session
+          ? { where: { userId: session.user.id }, select: { id: true } }
+          : false,
+        savedInterviews: session
+          ? { where: { userId: session.user.id }, select: { id: true } }
+          : false,
+        // Check if current user already has an attempt
+        attempts: session
+          ? {
+              where: { userId: session.user.id },
+              orderBy: { startedAt: "desc" },
+              take: 1,
+              select: {
+                id: true,
+                status: true,
+                score: true,
+                submittedAt: true,
+              },
+            }
+          : false,
       },
     });
 
@@ -32,7 +48,15 @@ export async function GET(req: Request, { params }: Props) {
       );
     }
 
-    return NextResponse.json(interview);
+    return NextResponse.json({
+      ...interview,
+      isLiked: session ? (interview.likes?.length ?? 0) > 0 : false,
+      isSaved: session ? (interview.savedInterviews?.length ?? 0) > 0 : false,
+      attemptCount: interview._count.attempts,
+      likeCount: interview._count.likes,
+      // null if user hasn't attempted, otherwise their latest attempt summary
+      userAttempt: session ? (interview.attempts?.[0] ?? null) : null,
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
@@ -47,17 +71,14 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await context.params; // ✅ unwrap params
-
+    const { id } = await context.params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const interview = await prisma.interview.findUnique({
-      where: { id },
-    });
+    const interview = await prisma.interview.findUnique({ where: { id } });
 
     if (!interview) {
       return NextResponse.json(
@@ -70,9 +91,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await prisma.interview.delete({
-      where: { id },
-    });
+    await prisma.interview.delete({ where: { id } });
 
     return NextResponse.json(
       { message: "Interview deleted successfully" },

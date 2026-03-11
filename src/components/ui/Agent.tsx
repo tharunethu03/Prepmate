@@ -12,7 +12,7 @@ const Agent = () => {
 
       <>
         <Image
-          src={"/ai-agent.png"}
+          src={"/login/ai-agent.png"}
           width={120}
           height={120}
           alt="AVATAR"

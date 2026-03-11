@@ -8,6 +8,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────────────────────────
+// USER
+// ─────────────────────────────────────────────
 model User {
   id       String  @id @default(auto()) @map("_id") @db.ObjectId
   email    String  @unique
@@ -30,16 +33,40 @@ model User {
   profileCompleted    Boolean @default(false)
   onboardingCompleted Boolean @default(false)
 
-  accounts    Account[]
-  interviews  Interview[]
-  likes       Like[]
-  candidacies Candidate[]
+  // ── Gamification ──────────────────────────
+  xp    Int @default(0) // total experience points (drives level calculation)
+  level Int @default(1) // denormalised for fast leaderboard queries
+  // level formula example: level = floor(sqrt(xp / 100)) + 1
+  // recompute on every XP change in a server action / API route
 
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  // ── Relations ─────────────────────────────
+  accounts   Account[]
+  interviews Interview[]
+  likes      Like[]
+  attempts   InterviewAttempt[] // replaces Candidate
+
   savedInterviews SavedInterview[]
+
+  badges   UserBadge[]
+  xpEvents XpEvent[] // audit log of every XP gain/loss
+
+  // Friendship (both directions stored as separate rows)
+  sentRequests     FriendRequest[] @relation("Sender")
+  receivedRequests FriendRequest[] @relation("Receiver")
+  friendshipsA     Friendship[]    @relation("FriendA")
+  friendshipsB     Friendship[]    @relation("FriendB")
+
+  // Challenges
+  challengesSent     Challenge[] @relation("Challenger")
+  challengesReceived Challenge[] @relation("Challenged")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
+// ─────────────────────────────────────────────
+// ACCOUNT (NextAuth OAuth)
+// ─────────────────────────────────────────────
 model Account {
   id                String @id @default(auto()) @map("_id") @db.ObjectId
   userId            String @db.ObjectId
@@ -60,6 +87,9 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
+// ─────────────────────────────────────────────
+// INTERVIEW
+// ─────────────────────────────────────────────
 model Interview {
   id            String        @id @default(auto()) @map("_id") @db.ObjectId
   title         String
@@ -75,27 +105,80 @@ model Interview {
   creator      User    @relation(fields: [createdBy], references: [id])
   creatorField String?
 
-  likes      Like[]
-  candidates Candidate[]
-
-  createdAt DateTime @default(now())
-
-  questions       Question[]
+  likes           Like[]
+  attempts        InterviewAttempt[]
   savedInterviews SavedInterview[]
+  challenges      Challenge[]
+
+  createdAt DateTime   @default(now())
+  questions Question[]
 }
 
+// ─────────────────────────────────────────────
+// QUESTION
+// ─────────────────────────────────────────────
 model Question {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   interviewId String   @db.ObjectId
   order       Int
   question    String
-  answer      String
-  keywords    String[]
+  answer      String // ideal answer (AI-generated or creator-written)
+  keywords    String[] // used for scoring keyword matches
   topics      String[]
 
-  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  interview       Interview          @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  answerResponses QuestionResponse[]
 }
 
+// ─────────────────────────────────────────────
+// INTERVIEW ATTEMPT  (replaces Candidate)
+// Tracks one full run-through of an interview by a user.
+// ─────────────────────────────────────────────
+model InterviewAttempt {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String        @db.ObjectId
+  interviewId String        @db.ObjectId
+  status      AttemptStatus @default(IN_PROGRESS)
+
+  score    Float? // 0-100, computed after submission
+  xpEarned Int    @default(0) // XP awarded for this attempt
+
+  // Optional: link back to the challenge that triggered this attempt
+  challengeId String?    @db.ObjectId
+  challenge   Challenge? @relation(fields: [challengeId], references: [id])
+
+  startedAt   DateTime  @default(now())
+  submittedAt DateTime?
+
+  user      User               @relation(fields: [userId], references: [id])
+  interview Interview          @relation(fields: [interviewId], references: [id])
+  responses QuestionResponse[]
+
+  @@index([userId])
+  @@index([interviewId])
+}
+
+// ─────────────────────────────────────────────
+// QUESTION RESPONSE
+// One row per question per attempt — stores what the user typed
+// and the per-question score derived from keyword matching.
+// ─────────────────────────────────────────────
+model QuestionResponse {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  attemptId  String @db.ObjectId
+  questionId String @db.ObjectId
+
+  userAnswer      String // raw text the user typed
+  matchedKeywords String[] // subset of Question.keywords found in answer
+  questionScore   Float // 0-100 for this specific question
+
+  attempt  InterviewAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question         @relation(fields: [questionId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// LIKE / SAVE  (unchanged logic, kept clean)
+// ─────────────────────────────────────────────
 model Like {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
   userId      String @db.ObjectId
@@ -118,17 +201,118 @@ model SavedInterview {
   @@unique([userId, interviewId])
 }
 
-model Candidate {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String @db.ObjectId
-  interviewId String @db.ObjectId
+// ─────────────────────────────────────────────
+// FRIENDSHIP SYSTEM
+//
+// Two-step flow:
+//   1. UserA sends FriendRequest → status PENDING
+//   2. UserB accepts → FriendRequest status → ACCEPTED
+//      + one Friendship row is created (canonical: friendAId < friendBId)
+//   3. Either user can delete the Friendship row to unfriend.
+// ─────────────────────────────────────────────
+model FriendRequest {
+  id         String              @id @default(auto()) @map("_id") @db.ObjectId
+  senderId   String              @db.ObjectId
+  receiverId String              @db.ObjectId
+  status     FriendRequestStatus @default(PENDING)
 
-  user      User      @relation(fields: [userId], references: [id])
-  interview Interview @relation(fields: [interviewId], references: [id])
+  sender   User @relation("Sender", fields: [senderId], references: [id])
+  receiver User @relation("Receiver", fields: [receiverId], references: [id])
 
-  @@unique([userId, interviewId])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([senderId, receiverId]) // prevent duplicate requests
 }
 
+model Friendship {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  // Store IDs so that friendAId is always lexicographically smaller —
+  // enforced in application code before writing, guarantees @@unique works.
+  friendAId String @db.ObjectId
+  friendBId String @db.ObjectId
+
+  friendA User @relation("FriendA", fields: [friendAId], references: [id])
+  friendB User @relation("FriendB", fields: [friendBId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([friendAId, friendBId])
+}
+
+// ─────────────────────────────────────────────
+// CHALLENGE
+// A user challenges a friend to complete an interview.
+// When the challenged user starts, an InterviewAttempt is created
+// and linked back here via challengeId.
+// ─────────────────────────────────────────────
+model Challenge {
+  id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  challengerId String          @db.ObjectId
+  challengedId String          @db.ObjectId
+  interviewId  String          @db.ObjectId
+  status       ChallengeStatus @default(PENDING)
+  message      String? // optional taunt / note
+
+  challenger User      @relation("Challenger", fields: [challengerId], references: [id])
+  challenged User      @relation("Challenged", fields: [challengedId], references: [id])
+  interview  Interview @relation(fields: [interviewId], references: [id])
+
+  // attempts created as a result of this challenge
+  attempts InterviewAttempt[]
+
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime? // when the challenged user accepted/declined
+}
+
+// ─────────────────────────────────────────────
+// GAMIFICATION — XP AUDIT LOG
+// Every action that awards XP is recorded here.
+// The running total is denormalised onto User.xp for performance.
+// ─────────────────────────────────────────────
+model XpEvent {
+  id     String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId String   @db.ObjectId
+  amount Int // positive = gained, negative = possible penalties
+  reason XpReason
+  refId  String? // optional ID of the entity that triggered the event
+
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// GAMIFICATION — BADGES
+// ─────────────────────────────────────────────
+model Badge {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  key         String @unique // e.g. "FIRST_INTERVIEW", "STREAK_7"
+  name        String
+  description String
+  icon        String // URL or icon identifier
+  xpReward    Int    @default(0) // bonus XP given when badge is first earned
+
+  userBadges UserBadge[]
+}
+
+model UserBadge {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  userId  String @db.ObjectId
+  badgeId String @db.ObjectId
+
+  user  User  @relation(fields: [userId], references: [id])
+  badge Badge @relation(fields: [badgeId], references: [id])
+
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, badgeId]) // each badge earned once per user
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
 enum Difficulty {
   beginner
   intermediate
@@ -143,4 +327,36 @@ enum InterviewMode {
 enum Visibility {
   public
   private
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  ABANDONED
+}
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum ChallengeStatus {
+  PENDING // waiting for the challenged user to accept
+  ACCEPTED // they started the interview
+  COMPLETED // they submitted the attempt
+  DECLINED // they said no
+  EXPIRED // optional: you can set a TTL via a cron job
+}
+
+enum XpReason {
+  INTERVIEW_COMPLETED // finished an attempt
+  INTERVIEW_CREATED // creator published an interview
+  CHALLENGE_SENT // you challenged a friend
+  CHALLENGE_COMPLETED // you completed a challenge
+  CHALLENGE_WON // your score beat the challenger's
+  FRIEND_ADDED // accepted or sent a friend request
+  BADGE_EARNED // bonus from a badge
+  PROFILE_COMPLETED // one-time reward for finishing onboarding
+  DAILY_LOGIN // streak bonus (implement via cron or middleware)
 }
