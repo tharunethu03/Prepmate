@@ -24,7 +24,6 @@ export async function GET(req: Request, { params }: Props) {
         savedInterviews: session
           ? { where: { userId: session.user.id }, select: { id: true } }
           : false,
-        // Check if current user already has an attempt
         attempts: session
           ? {
               where: { userId: session.user.id },
@@ -41,21 +40,39 @@ export async function GET(req: Request, { params }: Props) {
       },
     });
 
-    if (!interview) {
+    if (!interview)
       return NextResponse.json(
         { error: "Interview not found" },
         { status: 404 },
       );
-    }
 
+    // Format to match list API response shape
     return NextResponse.json({
-      ...interview,
+      id: interview.id,
+      title: interview.title,
+      role: interview.role,
+      difficulty: interview.difficulty,
+      visibility: interview.visibility,
+      topics: interview.topics,
+      questionCount: interview.questionCount,
+      createdBy: interview.createdBy,
+      description: interview.description,
+      interviewType: interview.interviewType,
+      mode: interview.mode,
+      likes: interview._count.likes,
       isLiked: session ? (interview.likes?.length ?? 0) > 0 : false,
       isSaved: session ? (interview.savedInterviews?.length ?? 0) > 0 : false,
-      attemptCount: interview._count.attempts,
       likeCount: interview._count.likes,
-      // null if user hasn't attempted, otherwise their latest attempt summary
+      attemptCount: interview._count.attempts,
+      recentAttemptees: [],
       userAttempt: session ? (interview.attempts?.[0] ?? null) : null,
+      creator: interview.creator,
+      questions: interview.questions.map((q) => ({
+        id: q.id,
+        question: q.question,
+        answer: q.answer,
+        keywords: q.keywords,
+      })),
     });
   } catch (error) {
     console.error(error);

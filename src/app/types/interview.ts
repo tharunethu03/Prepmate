@@ -8,6 +8,7 @@ export type Interview = {
   questionCount: number;
   createdBy: string;
   description: string;
+  interviewType: "technical" | "behavioral" | "hr" | "mixed";
 
   questions: {
     id: string;

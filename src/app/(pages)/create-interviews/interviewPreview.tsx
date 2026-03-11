@@ -29,6 +29,7 @@ type InterviewPreviewData = {
   description: string;
   topics: string[];
   difficulty: "beginner" | "intermediate" | "advanced";
+  interviewType: "technical" | "behavioral" | "hr" | "mixed"; // add this
   numberOfQuestion: number;
   mode: "ai" | "custom";
   visibility: "public" | "private";
@@ -84,6 +85,7 @@ export default function InterviewPreview({
           description: data.description,
           topics: data.topics,
           difficulty: data.difficulty,
+          interviewType: data.interviewType,
           mode: data.mode,
           visibility: data.visibility,
           questions,
@@ -92,9 +94,14 @@ export default function InterviewPreview({
 
       if (!res.ok) throw new Error("Failed to create interview");
 
-      const createdInterview: Interview = await res.json();
+      const created = await res.json();
 
-      onCreate(createdInterview);
+      // Fetch the full formatted interview so questions/creator are included
+      const fullRes = await fetch(`/api/interviews/${created.id}`);
+      if (!fullRes.ok) throw new Error("Failed to fetch created interview");
+      const fullInterview: Interview = await fullRes.json();
+
+      onCreate(fullInterview);
       onConfirm();
     } catch (error) {
       console.error(error);
@@ -102,7 +109,7 @@ export default function InterviewPreview({
   };
 
   return (
-    <div className="fixed inset-0   z-[60] flex items-center justify-center">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-xs">
       <div className="bg-foreground border-1 border-accent px-5 md:px-10 py-10 rounded-[22px] max-w-6xl max-h-[90vh] w-[90%] md:w-full relative flex flex-col mx-5 md:mx-0 overflow-y-auto scrollbar-hide">
         <button
           className="absolute top-5 right-5 text-tertiary hover:text-secondary cursor-pointer"

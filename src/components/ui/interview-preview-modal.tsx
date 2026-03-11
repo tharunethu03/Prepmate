@@ -107,24 +107,26 @@ const InterviewPreviewModal = ({
         </button>
         <div className="flex flex-col h-full">
           <h2>{interview.title}</h2>
-          <div className="flex gap-2 my-5">
+          <div className="flex gap-2 my-5 flex-wrap">
             <div className="flex bg-accent w-fit px-3 py-1 rounded-[12px] gap-1 items-center">
               <Image
                 src={interview.creator?.avatar || "/profile-setup/avatar1.png"}
                 width={25}
                 height={25}
                 alt="AVATAR"
-                className="rounded-full "
+                className="rounded-full"
               />
               <span className="text-foreground font-bold text-xs">
                 {interview.creator?.name || "Unknown"}
               </span>
             </div>
+
             <div className="flex bg-accent w-fit px-3 py-1 rounded-[12px] gap-1 items-center">
               <span className="text-foreground font-bold text-xs">
                 {interview.role}
               </span>
             </div>
+
             <div
               className="flex border w-fit px-3 py-1 rounded-[12px] gap-1 items-center"
               style={{ borderColor: color }}
@@ -137,6 +139,15 @@ const InterviewPreviewModal = ({
                 {interview.difficulty}
               </span>
             </div>
+
+            {/* NEW: interview type badge */}
+            {interview.interviewType && (
+              <div className="flex bg-border w-fit px-3 py-1 rounded-[12px] items-center">
+                <span className="text-secondary font-bold text-xs capitalize">
+                  {interview.interviewType}
+                </span>
+              </div>
+            )}
           </div>
           <p className="sub-text">Topics : {interview.topics.join(", ")}</p>
           <p className="sub-text mt-5">{interview.description}</p>

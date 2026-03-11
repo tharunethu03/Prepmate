@@ -100,6 +100,7 @@ model Interview {
   mode          InterviewMode
   visibility    Visibility
   questionCount Int
+  interviewType InterviewType @default(mixed)
 
   createdBy    String  @db.ObjectId
   creator      User    @relation(fields: [createdBy], references: [id])
@@ -359,4 +360,11 @@ enum XpReason {
   BADGE_EARNED // bonus from a badge
   PROFILE_COMPLETED // one-time reward for finishing onboarding
   DAILY_LOGIN // streak bonus (implement via cron or middleware)
+}
+
+enum InterviewType {
+  technical
+  behavioral
+  hr
+  mixed
 }
