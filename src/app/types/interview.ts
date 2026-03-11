@@ -7,8 +7,8 @@ export type Interview = {
   topics: string[];
   questionCount: number;
   createdBy: string;
-
   description: string;
+
   questions: {
     id: string;
     question: string;
@@ -19,15 +19,25 @@ export type Interview = {
   likes: number;
   isLiked: boolean;
   isSaved: boolean;
+  likeCount?: number;
+
+  attemptCount: number;
+  recentAttemptees: {
+    id: string;
+    avatar: string | null;
+  }[];
+
+  // The current user's latest attempt on this interview (null if never attempted)
+  userAttempt?: {
+    id: string;
+    status: "IN_PROGRESS" | "SUBMITTED" | "ABANDONED";
+    score: number | null;
+    submittedAt: string | null;
+  } | null;
 
   creator: {
     id: string;
     name: string | null;
     avatar: string | null;
   };
-
-  candidates: {
-    id: string;
-    avatar: string | null;
-  }[];
 };

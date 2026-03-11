@@ -1,36 +1,34 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
+import { NextResponse } from "next/server";
 
 export async function POST(
   req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const session = await getServerSession(authOptions);
-  if (!session) return new Response("Unauthorized", { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const userId = session.user.id;
-
-  // Await the params object
   const { id: interviewId } = await context.params;
 
   if (!interviewId)
-    return new Response("Interview ID missing", { status: 400 });
+    return NextResponse.json(
+      { error: "Interview ID missing" },
+      { status: 400 },
+    );
 
-  // Check if the user already liked this interview
   const existing = await prisma.like.findFirst({
     where: { userId, interviewId },
   });
 
   if (existing) {
-    // Unlike
-    await prisma.like.deleteMany({
-      where: { userId, interviewId },
-    });
-    return new Response(JSON.stringify({ liked: false }), { status: 200 });
+    await prisma.like.deleteMany({ where: { userId, interviewId } });
+    return NextResponse.json({ liked: false });
   }
 
-  // Like
   await prisma.like.create({
     data: {
       user: { connect: { id: userId } },
@@ -38,5 +36,14 @@ export async function POST(
     },
   });
 
-  return new Response(JSON.stringify({ liked: true }), { status: 200 });
+  // Small XP reward for engaging with content
+  await prisma.xpEvent.create({
+    data: { userId, amount: 5, reason: "BADGE_EARNED", refId: interviewId },
+  });
+  await prisma.user.update({
+    where: { id: userId },
+    data: { xp: { increment: 5 } },
+  });
+
+  return NextResponse.json({ liked: true });
 }

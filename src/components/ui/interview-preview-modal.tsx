@@ -183,18 +183,18 @@ const InterviewPreviewModal = ({
           <div className="flex items-center justify-between text-end mt-auto">
             <div>
               <AvatarGroup>
-                {interview.candidates?.slice(0, 5).map((candidate) => (
-                  <Avatar key={candidate.id}>
+                {interview.recentAttemptees?.slice(0, 5).map((attemptee) => (
+                  <Avatar key={attemptee.id}>
                     <AvatarImage
-                      src={candidate.avatar || "/profile-setup/avatar1.png"}
-                      alt="candidate-avatar"
+                      src={attemptee.avatar || "/profile-setup/avatar1.png"}
+                      alt="attemptee-avatar"
                     />
                     <AvatarFallback>C</AvatarFallback>
                   </Avatar>
                 ))}
-                {interview.candidates.length > 5 && (
+                {(interview.attemptCount ?? 0) > 5 && (
                   <AvatarGroupCount>
-                    +{interview.candidates?.length - 5}
+                    +{(interview.attemptCount ?? 0) - 5}
                   </AvatarGroupCount>
                 )}
               </AvatarGroup>

@@ -38,7 +38,7 @@ const LoginForm = () => {
       }
 
       if (!session.user.profileCompleted) {
-        router.push("/profile-setup"); // Redirect new users to complete profile
+        router.push("/profile-setup"); // Redirect new users to complete profile setup
       } else {
         router.push(callbackUrl); // Otherwise go to callbackUrl (dashboard)
       }

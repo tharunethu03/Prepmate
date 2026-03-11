@@ -30,7 +30,6 @@ export async function POST(req: Request) {
     }
 
     const body: CreateInterviewBody = await req.json();
-
     const {
       title,
       role,
@@ -53,6 +52,19 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: "Invalid request body" },
         { status: 400 },
+      );
+    }
+
+    // Only creators and admins can create public interviews
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    if (visibility === "public" && user?.role === "STUDENT") {
+      return NextResponse.json(
+        { error: "Only creators can publish public interviews" },
+        { status: 403 },
       );
     }
 
@@ -80,6 +92,24 @@ export async function POST(req: Request) {
       },
     });
 
+    // Award XP for creating an interview (creators only)
+    if (user?.role === "CREATOR" || user?.role === "ADMIN") {
+      await prisma.xpEvent.create({
+        data: {
+          userId: session.user.id,
+          amount: 50,
+          reason: "INTERVIEW_CREATED",
+          refId: interview.id,
+        },
+      });
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: {
+          xp: { increment: 50 },
+        },
+      });
+    }
+
     return NextResponse.json(interview);
   } catch (error) {
     console.error(error);
@@ -90,7 +120,6 @@ export async function POST(req: Request) {
   }
 }
 
-//Fetch all interviews
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -107,14 +136,12 @@ export async function GET(req: Request) {
 
     const session = await getServerSession(authOptions);
 
-    //Prepare filters
     const now = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(now.getDate() - 30);
 
     const where: Prisma.InterviewWhereInput = {};
 
-    // Basic filters
     if (visibility === "public" || visibility === "private") {
       where.visibility = visibility;
     }
@@ -137,44 +164,35 @@ export async function GET(req: Request) {
     if (topic) {
       where.topics = { has: topic };
     }
-
-    // Trending filter
     if (trending === "true") {
       where.createdAt = { gte: thirtyDaysAgo, lte: now };
     }
-
-    //saved
-    if (saved) {
-      where.savedInterviews = {
-        some: {
-          userId: session?.user.id,
-        },
-      };
+    if (saved === "true") {
+      if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      where.savedInterviews = { some: { userId: session.user.id } };
     }
 
-    // Build the query object dynamically
     const interviews = await prisma.interview.findMany({
       where,
       orderBy:
         trending === "true"
-          ? { candidates: { _count: "desc" } }
+          ? { attempts: { _count: "desc" } } // was: candidates
           : { createdAt: "desc" },
       include: {
         creator: { select: { id: true, name: true, avatar: true } },
-        candidates: {
+        // Show avatars of first 5 people who attempted
+        attempts: {
           take: 5,
+          where: { status: "SUBMITTED" },
           include: { user: { select: { id: true, avatar: true } } },
         },
         questions: {
-          orderBy: { order: "asc" }, // VERY IMPORTANT
-          select: {
-            id: true,
-            question: true,
-            answer: true,
-            keywords: true,
-          },
+          orderBy: { order: "asc" },
+          select: { id: true, question: true, answer: true, keywords: true },
         },
-        _count: { select: { candidates: true, likes: true } },
+        _count: { select: { attempts: true, likes: true } }, // was: candidates
         likes: {
           where: session ? { userId: session.user.id } : undefined,
           select: { id: true },
@@ -187,7 +205,6 @@ export async function GET(req: Request) {
       take: limit,
     });
 
-    // Format results
     const formatted = interviews.map((i) => ({
       id: i.id,
       title: i.title,
@@ -198,25 +215,16 @@ export async function GET(req: Request) {
       questionCount: i.questionCount,
       createdBy: i.createdBy,
       description: i.description,
-
-      //Total likes count
       likes: i._count.likes,
-
-      //Did current user like it?
       isLiked: session ? i.likes.length > 0 : false,
-
       isSaved: session ? (i.savedInterviews?.length ?? 0) > 0 : false,
-
-      candidateCount: i._count.candidates,
-
+      attemptCount: i._count.attempts, // was: candidateCount
       creator: i.creator,
-
-      //Flatten candidates
-      candidates: i.candidates.map((c) => ({
-        id: c.user.id,
-        avatar: c.user.avatar,
+      // Flatten attempts to just user avatars for the UI overlap display
+      recentAttemptees: i.attempts.map((a) => ({
+        id: a.user.id,
+        avatar: a.user.avatar,
       })),
-
       questions: i.questions.map((q) => ({
         id: q.id,
         question: q.question,
@@ -227,7 +235,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ interviews: formatted });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return NextResponse.json(
       { error: "Failed to fetch interviews" },
       { status: 500 },
