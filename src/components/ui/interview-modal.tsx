@@ -113,7 +113,7 @@ const InterviewModal = ({
     <TooltipPrimitive.Provider delayDuration={1000}>
       <div
         onClick={onPreview}
-        className="flex flex-col gap-3 w-full sm:w-fit shadow-lg min-w-[200px]  max-w-[300px] md:max-w-100 min-h-65 bg-foreground border-2 border-border px-4 sm:px-8 py-4 sm:py-5 rounded-[22px] hover:scale-102 transition-transform cursor-pointer"
+        className="flex flex-col gap-3 w-full shadow-lg min-w-85 md:min-w-100 max-w-85 md:max-w-100 min-h-40 bg-foreground border-2 border-border px-4 sm:px-8 py-4 sm:py-5 rounded-[22px] hover:scale-102 transition-transform cursor-pointer"
       >
         <h2 className="text-sm sm:text-lg font-semibold">{interview.title}</h2>
 
@@ -132,7 +132,7 @@ const InterviewModal = ({
           </div>
 
           <div
-            className="flex border w-fit px-3 sm:px-5 py-1 sm:py-1.5 rounded-[12px] gap-1 items-center text-xs sm:text-xs"
+            className="flex border w-fit px-3  py-1 sm:py-1.5 rounded-[12px] gap-1 items-center text-xs "
             style={{ borderColor: color }}
           >
             <span
@@ -154,22 +154,22 @@ const InterviewModal = ({
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-auto text-end gap-2 sm:gap-0">
           <div className="mb-2 sm:mb-0">
-<AvatarGroup>
-  {interview.recentAttemptees?.slice(0, 5).map((attemptee) => (
-    <Avatar key={attemptee.id}>
-      <AvatarImage
-        src={attemptee.avatar || "/profile-setup/avatar1.png"}
-        alt="attemptee-avatar"
-      />
-      <AvatarFallback>C</AvatarFallback>
-    </Avatar>
-  ))}
-  {(interview.attemptCount ?? 0) > 5 && (
-    <AvatarGroupCount>
-      +{(interview.attemptCount ?? 0) - 5}
-    </AvatarGroupCount>
-  )}
-</AvatarGroup>
+            <AvatarGroup>
+              {interview.recentAttemptees?.slice(0, 5).map((attemptee) => (
+                <Avatar key={attemptee.id}>
+                  <AvatarImage
+                    src={attemptee.avatar || "/profile-setup/avatar1.png"}
+                    alt="attemptee-avatar"
+                  />
+                  <AvatarFallback>C</AvatarFallback>
+                </Avatar>
+              ))}
+              {(interview.attemptCount ?? 0) > 5 && (
+                <AvatarGroupCount>
+                  +{(interview.attemptCount ?? 0) - 5}
+                </AvatarGroupCount>
+              )}
+            </AvatarGroup>
           </div>
 
           <div className="flex flex-wrap gap-2 sm:gap-4 items-center">

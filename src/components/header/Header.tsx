@@ -22,9 +22,21 @@ const Header = () => {
   const [notificationModal, setNotificationModal] = useState(false);
   const [profileModal, setProfileModal] = useState(false);
   const [logout, setLogout] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const pathname = usePathname();
   const avatar = session?.user?.avatar;
+
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const res = await fetch("/api/notifications");
+        const data = await res.json();
+        setUnreadCount(data.unreadCount ?? 0);
+      } catch {}
+    };
+    fetchCount();
+  }, []);
 
   useEffect(() => {
     const handleResize = () => setIsSm(window.innerWidth < 768);
@@ -102,12 +114,17 @@ const Header = () => {
               <Tooltip.Trigger asChild>
                 <motion.button
                   onClick={() => setNotificationModal(true)}
-                  className="ring-2 ring-accent rounded-full p-1 cursor-pointer"
+                  className="ring-2 ring-accent rounded-full p-1 cursor-pointer relative"
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.9 }}
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 >
-                  <Bell className="text-accent  w-6" />
+                  <Bell className="text-accent w-6" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-error text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
                 </motion.button>
               </Tooltip.Trigger>
               <TooltipContent
@@ -139,7 +156,10 @@ const Header = () => {
         {isSm ? <Title /> : ""}
       </div>
       {notificationModal && (
-        <NotificationModal onFinish={() => setNotificationModal(false)} />
+        <NotificationModal
+          onFinish={() => setNotificationModal(false)}
+          onCountChange={(count) => setUnreadCount(count)}
+        />
       )}
       {profileModal && (
         <div
@@ -158,7 +178,7 @@ const Header = () => {
               <User size={20} />
               <p className="text-sm">Profile</p>
             </button>
-            <button
+            {/* <button
               onClick={() => router.push("/add-friends")}
               className={`${
                 pathname === "/add-friends"
@@ -168,7 +188,7 @@ const Header = () => {
             >
               <Users size={20} />
               <p className="text-sm">Friends</p>
-            </button>
+            </button> */}
             <button
               onClick={() => setLogout(true)}
               className="flex items-center gap-5 w-full cursor-pointer text-secondary hover:bg-accent hover:text-foreground px-5 py-3 rounded-[12px]"

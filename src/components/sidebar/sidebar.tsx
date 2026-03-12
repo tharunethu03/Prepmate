@@ -146,7 +146,6 @@ const Sidebar = () => {
               />
             }
           />
-          
         </div>
       </div>
     </TooltipPrimitive.Provider>
