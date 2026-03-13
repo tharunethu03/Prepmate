@@ -65,7 +65,7 @@ const LeaderboardPage = () => {
                   size={40}
                   className={`absolute -top-1 left-0 rotate-333 ${
                     friend.id === session?.user?.id
-                      ? "text-accent fill-accent"
+                      ? "text-warning fill-warning"
                       : "text-warning fill-warning"
                   }`}
                 />
@@ -77,7 +77,7 @@ const LeaderboardPage = () => {
                 height={100}
                 className={`border-4 rounded-full mt-6 ${
                   friend.id === session?.user?.id
-                    ? "border-accent"
+                    ? "border-warning"
                     : "border-warning"
                 }`}
               />

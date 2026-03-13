@@ -3,7 +3,7 @@ import { Bell, LogOut, Moon, Sun, User, Users } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
 import Title from "./Title";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { TooltipContent } from "../ui/tooltip";
@@ -14,10 +14,19 @@ import NotificationModal from "./Notification-modal";
 import Image from "next/image";
 import { Button } from "../ui/button";
 
+function useIsClient() {
+  return useSyncExternalStore(
+    () => () => {}, // no external subscription
+    () => true, // client snapshot
+    () => false, // server snapshot
+  );
+}
+
 const Header = () => {
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+  const isClient = useIsClient();
   const [isSm, setIsSm] = useState(false);
   const [notificationModal, setNotificationModal] = useState(false);
   const [profileModal, setProfileModal] = useState(false);
@@ -45,6 +54,8 @@ const Header = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const isDark = isClient && theme === "dark";
+
   return (
     <TooltipPrimitive.Provider delayDuration={1000}>
       <div className="flex flex-col border-b border-border md:border-none pb-5 md:pb-0">
@@ -64,7 +75,9 @@ const Header = () => {
                     transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   >
                     <AnimatePresence mode="wait">
-                      {theme === "dark" ? (
+                      {!isClient ? (
+                        <span key="placeholder" className="block w-6 h-6" />
+                      ) : isDark ? (
                         <motion.span
                           key="sun"
                           initial={{ rotate: -90, opacity: 0, scale: 0.8 }}
@@ -105,7 +118,7 @@ const Header = () => {
                   className="rounded-[12px] border border-border"
                 >
                   <p className="text-sm text-secondary">
-                    {theme === "dark" ? "Light Mode" : "Dark Mode"}
+                    {isClient ? (isDark ? "Light Mode" : "Dark Mode") : ""}
                   </p>
                 </TooltipContent>
               </Tooltip.Root>
