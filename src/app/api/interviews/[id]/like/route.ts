@@ -2,6 +2,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
+import { awardXp } from "@/lib/xp";
+import { XpReason } from "@/generated/prisma/client";
 
 export async function POST(
   req: Request,
@@ -37,13 +39,7 @@ export async function POST(
   });
 
   // Small XP reward for engaging with content
-  await prisma.xpEvent.create({
-    data: { userId, amount: 5, reason: "BADGE_EARNED", refId: interviewId },
-  });
-  await prisma.user.update({
-    where: { id: userId },
-    data: { xp: { increment: 5 } },
-  });
+  await awardXp(session.user.id, 5, XpReason.INTERVIEW_CREATED, interviewId);
 
   return NextResponse.json({ liked: true });
 }

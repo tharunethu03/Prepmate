@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
+import { awardXp } from "@/lib/xp";
+import { XpReason } from "@/generated/prisma/client";
 
 type CreateInterviewQuestion = {
   question: string;
@@ -94,20 +96,12 @@ export async function POST(req: Request) {
 
     // Award XP for creating an interview (creators only)
     if (user?.role === "CREATOR" || user?.role === "ADMIN") {
-      await prisma.xpEvent.create({
-        data: {
-          userId: session.user.id,
-          amount: 50,
-          reason: "INTERVIEW_CREATED",
-          refId: interview.id,
-        },
-      });
-      await prisma.user.update({
-        where: { id: session.user.id },
-        data: {
-          xp: { increment: 50 },
-        },
-      });
+      await awardXp(
+        session.user.id,
+        50,
+        XpReason.INTERVIEW_CREATED,
+        interview.id,
+      );
     }
 
     return NextResponse.json(interview);
@@ -184,9 +178,9 @@ export async function GET(req: Request) {
         creator: { select: { id: true, name: true, avatar: true } },
         // Show avatars of first 5 people who attempted
         attempts: {
-          take: 5,
           where: { status: "SUBMITTED" },
           include: { user: { select: { id: true, avatar: true } } },
+          orderBy: { startedAt: "desc" },
         },
         questions: {
           orderBy: { order: "asc" },
@@ -205,33 +199,44 @@ export async function GET(req: Request) {
       take: limit,
     });
 
-    const formatted = interviews.map((i) => ({
-      id: i.id,
-      title: i.title,
-      role: i.role,
-      difficulty: i.difficulty,
-      visibility: i.visibility,
-      topics: i.topics,
-      questionCount: i.questionCount,
-      createdBy: i.createdBy,
-      description: i.description,
-      likes: i._count.likes,
-      isLiked: session ? i.likes.length > 0 : false,
-      isSaved: session ? (i.savedInterviews?.length ?? 0) > 0 : false,
-      attemptCount: i._count.attempts, // was: candidateCount
-      creator: i.creator,
-      // Flatten attempts to just user avatars for the UI overlap display
-      recentAttemptees: i.attempts.map((a) => ({
-        id: a.user.id,
-        avatar: a.user.avatar,
-      })),
-      questions: i.questions.map((q) => ({
-        id: q.id,
-        question: q.question,
-        answer: q.answer,
-        keywords: q.keywords,
-      })),
-    }));
+    const formatted = interviews.map((i) => {
+      // Deduplicate attemptees per interview
+      const seenUserIds = new Set<string>();
+      const uniqueAttemptees = i.attempts
+        .filter((a) => {
+          if (seenUserIds.has(a.user.id)) return false;
+          seenUserIds.add(a.user.id);
+          return true;
+        })
+        .slice(0, 5);
+
+      return {
+        id: i.id,
+        title: i.title,
+        role: i.role,
+        difficulty: i.difficulty,
+        visibility: i.visibility,
+        topics: i.topics,
+        questionCount: i.questionCount,
+        createdBy: i.createdBy,
+        description: i.description,
+        likes: i._count.likes,
+        isLiked: session ? i.likes.length > 0 : false,
+        isSaved: session ? (i.savedInterviews?.length ?? 0) > 0 : false,
+        attemptCount: i._count.attempts,
+        creator: i.creator,
+        recentAttemptees: uniqueAttemptees.map((a) => ({
+          id: a.user.id,
+          avatar: a.user.avatar,
+        })),
+        questions: i.questions.map((q) => ({
+          id: q.id,
+          question: q.question,
+          answer: q.answer,
+          keywords: q.keywords,
+        })),
+      };
+    });
 
     return NextResponse.json({ interviews: formatted });
   } catch (error) {

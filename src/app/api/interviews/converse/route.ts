@@ -11,6 +11,7 @@ type ConverseBody = {
   currentQuestionIndex?: number;
   questions?: { id: string; question: string }[];
   history?: Message[];
+
   userName?: string;
   role?: string;
   difficulty?: string;
@@ -86,8 +87,8 @@ CRITICAL: Respond ONLY with raw JSON. No markdown. No extra text.
         model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: systemPrompt },
-          ...history,
-          { role: "user", content: userMessage },
+          ...history.slice(-2),
+          { role: "user", content: userMessage ?? "" },
         ],
         temperature: 0.7,
         max_tokens: 150,

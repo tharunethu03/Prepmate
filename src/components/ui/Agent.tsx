@@ -9,7 +9,7 @@ const Agent = ({ isSpeaking = false }: AgentProps) => {
   return (
     <div className="relative w-full h-full rounded-t-[22px] overflow-hidden">
       <p className="absolute top-0 right-0 z-10 p-2 bg-accent/50 rounded-bl-[12px] rounded-tr-[22px] text-foreground text-sm">
-        AI Interviewer
+        Alex
       </p>
       <Image
         src="/login/ai-agent.png"

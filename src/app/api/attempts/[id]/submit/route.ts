@@ -7,7 +7,10 @@ type SubmitBody = {
   responses: { questionId: string; userAnswer: string }[];
 };
 
-function scoreAnswer(userAnswer: string, keywords: string[]): {
+function scoreAnswer(
+  userAnswer: string,
+  keywords: string[],
+): {
   matchedKeywords: string[];
   questionScore: number;
 } {
@@ -34,7 +37,7 @@ function calculateLevel(xp: number): number {
 
 export async function POST(
   req: Request,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id)
@@ -56,27 +59,32 @@ export async function POST(
   if (attempt.userId !== session.user.id)
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (attempt.status !== "IN_PROGRESS")
-    return NextResponse.json({ error: "Attempt already submitted" }, { status: 409 });
+    return NextResponse.json(
+      { error: "Attempt already submitted" },
+      { status: 409 },
+    );
 
   const questionMap = new Map(
-    attempt.interview.questions.map((q) => [q.id, q])
+    attempt.interview.questions.map((q) => [q.id, q]),
   );
 
-  const scoredResponses = responses.map((r) => {
-    const question = questionMap.get(r.questionId);
-    if (!question) return null;
-    const { matchedKeywords, questionScore } = scoreAnswer(
-      r.userAnswer,
-      question.keywords
-    );
-    return {
-      attemptId,
-      questionId: r.questionId,
-      userAnswer: r.userAnswer,
-      matchedKeywords,
-      questionScore,
-    };
-  }).filter(Boolean) as {
+  const scoredResponses = responses
+    .map((r) => {
+      const question = questionMap.get(r.questionId);
+      if (!question) return null;
+      const { matchedKeywords, questionScore } = scoreAnswer(
+        r.userAnswer,
+        question.keywords,
+      );
+      return {
+        attemptId,
+        questionId: r.questionId,
+        userAnswer: r.userAnswer,
+        matchedKeywords,
+        questionScore,
+      };
+    })
+    .filter(Boolean) as {
     attemptId: string;
     questionId: string;
     userAnswer: string;
@@ -112,15 +120,18 @@ export async function POST(
       },
     });
 
-    const user = await tx.user.update({
+    const currentUser = await tx.user.findUnique({
       where: { id: session.user.id },
-      data: { xp: { increment: xpEarned } },
       select: { xp: true },
     });
 
+    const currentXp = currentUser?.xp ?? 0;
+    const newXp = currentXp + xpEarned;
+    const newLevel = Math.floor(Math.sqrt(newXp / 100)) + 1;
+
     await tx.user.update({
       where: { id: session.user.id },
-      data: { level: calculateLevel(user.xp) },
+      data: { xp: newXp, level: newLevel },
     });
 
     if (attempt.challengeId) {

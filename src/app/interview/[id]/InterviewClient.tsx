@@ -369,18 +369,31 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
     ].some((w) => msg.includes(w));
 
     if (notReady) {
-      const reply = "Of course, take your time. Feel free to continue.";
+      const idx = currentIndexRef.current;
+      const isLast = idx === interview.questions.length - 1;
+      const currentQ = interview.questions[idx];
+
+      // Remove the last saved response so they can re-answer
+      const withoutLast = responsesRef.current.filter(
+        (r) => r.questionId !== currentQ.id,
+      );
+      updateResponses(withoutLast);
+
+      const reply = isLast
+        ? `No problem. Let's revisit the question: ${currentQ.question}`
+        : `Of course, take your time. Feel free to add anything about the current question.`;
+
       setAiMessage(reply);
       updatePhase("answering");
       updateCurrentAnswer("");
       speak(reply, () => startListening());
     } else {
-      // Ready — move on
       const idx = currentIndexRef.current;
       const isLast = idx === interview.questions.length - 1;
 
       if (isLast) {
-        const closing = "Excellent! Let me calculate your score now.";
+        const closing =
+          "Excellent! Let me calculate your score now. That’s all for this interview. Thanks for taking the time to participate!";
         setAiMessage(closing);
         speak(closing, () => handleSubmitAuto(responsesRef.current));
       } else {
@@ -548,7 +561,7 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
             <Agent isSpeaking={isSpeaking} />
           </div>
           <div className="border border-border flex-1 min-h-[50px] rounded-b-[22px]">
-            <CameraComponent />
+            <CameraComponent isUserSpeaking={isListening} />
           </div>
         </div>
 

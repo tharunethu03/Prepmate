@@ -191,8 +191,8 @@ const InterviewPreviewModal = ({
               )}
             </div>
           )}
-          <div className="flex items-center justify-between text-end mt-auto">
-            <div>
+          <div className="flex items-end justify-between text-end mt-auto">
+            <div className="flex flex-col gap-10">
               <AvatarGroup>
                 {interview.recentAttemptees?.slice(0, 5).map((attemptee) => (
                   <Avatar key={attemptee.id}>

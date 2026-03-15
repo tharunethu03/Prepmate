@@ -2,6 +2,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { awardXp } from "@/lib/xp";
+import { XpReason } from "@/generated/prisma/client";
 
 // PATCH /api/friends/[requestId] — accept or decline
 export async function PATCH(
@@ -38,44 +40,23 @@ export async function PATCH(
   }
 
   if (action === "accept") {
-    // Canonical ordering: smaller ID is friendA
     const [friendAId, friendBId] = [
       request.senderId,
       request.receiverId,
     ].sort();
 
+    // Create friendship and update friend request
     await prisma.$transaction([
       prisma.friendRequest.update({
         where: { id: requestId },
         data: { status: "ACCEPTED" },
       }),
       prisma.friendship.create({ data: { friendAId, friendBId } }),
-      // XP for both users
-      prisma.xpEvent.createMany({
-        data: [
-          {
-            userId: request.senderId,
-            amount: 20,
-            reason: "FRIEND_ADDED",
-            refId: requestId,
-          },
-          {
-            userId: request.receiverId,
-            amount: 20,
-            reason: "FRIEND_ADDED",
-            refId: requestId,
-          },
-        ],
-      }),
-      prisma.user.update({
-        where: { id: request.senderId },
-        data: { xp: { increment: 20 } },
-      }),
-      prisma.user.update({
-        where: { id: request.receiverId },
-        data: { xp: { increment: 20 } },
-      }),
     ]);
+
+    // Award XP to both users separately (awardXp handles null-safe increment)
+    await awardXp(request.senderId, 20, XpReason.FRIEND_ADDED, requestId);
+    await awardXp(request.receiverId, 20, XpReason.FRIEND_ADDED, requestId);
 
     return NextResponse.json({ status: "accepted" });
   }

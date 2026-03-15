@@ -24,19 +24,11 @@ export async function GET(req: Request, { params }: Props) {
         savedInterviews: session
           ? { where: { userId: session.user.id }, select: { id: true } }
           : false,
-        attempts: session
-          ? {
-              where: { userId: session.user.id },
-              orderBy: { startedAt: "desc" },
-              take: 1,
-              select: {
-                id: true,
-                status: true,
-                score: true,
-                submittedAt: true,
-              },
-            }
-          : false,
+        attempts: {
+          where: { status: "SUBMITTED" },
+          include: { user: { select: { id: true, avatar: true } } },
+          orderBy: { startedAt: "desc" },
+        },
       },
     });
 
@@ -46,7 +38,16 @@ export async function GET(req: Request, { params }: Props) {
         { status: 404 },
       );
 
-    // Format to match list API response shape
+    // Deduplicate attemptees before returning
+    const seenIds = new Set<string>();
+    const uniqueAttemptees = (interview.attempts ?? [])
+      .filter((a) => {
+        if (seenIds.has(a.user.id)) return false;
+        seenIds.add(a.user.id);
+        return true;
+      })
+      .slice(0, 5);
+
     return NextResponse.json({
       id: interview.id,
       title: interview.title,
@@ -64,7 +65,10 @@ export async function GET(req: Request, { params }: Props) {
       isSaved: session ? (interview.savedInterviews?.length ?? 0) > 0 : false,
       likeCount: interview._count.likes,
       attemptCount: interview._count.attempts,
-      recentAttemptees: [],
+      recentAttemptees: uniqueAttemptees.map((a) => ({
+        id: a.user.id,
+        avatar: a.user.avatar,
+      })),
       userAttempt: session ? (interview.attempts?.[0] ?? null) : null,
       creator: interview.creator,
       questions: interview.questions.map((q) => ({

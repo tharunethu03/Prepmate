@@ -4,12 +4,15 @@ import { Camera, CameraOff, Mic, MicOff } from "lucide-react";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 
-const CameraComponent = () => {
+type CameraComponentProps = {
+  isUserSpeaking?: boolean;
+};
+
+const CameraComponent = ({ isUserSpeaking = false }: CameraComponentProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraOn, setCameraOn] = useState(false);
   const [micOn, setMicOn] = useState(false);
-  const isSpeaking = true;
 
   const session = useSession();
   const avatar = session.data?.user?.avatar;
@@ -85,8 +88,10 @@ const CameraComponent = () => {
 
   return (
     <div className="relative w-full h-full rounded-b-[22px] overflow-hidden">
-      <p className="absolute top-0 right-0 z-10 p-2 bg-accent/50 rounded-bl-[12px] text-foreground text-sm">{session.data?.user?.name}</p>
-      
+      <p className="absolute top-0 right-0 z-10 p-2 bg-accent/50 rounded-bl-[12px] text-foreground text-sm">
+        {session.data?.user?.name}
+      </p>
+
       {!cameraOn && (
         <>
           <Image
@@ -96,7 +101,7 @@ const CameraComponent = () => {
             alt="AVATAR"
             className="absolute inset-0 m-auto rounded-full border-3 border-background ring-3 ring-accent z-3"
           />
-          {isSpeaking && (
+          {isUserSpeaking && (
             <span className="absolute inset-0 m-auto inline-flex w-25 h-25 animate-ping rounded-full bg-accent/75 z-2" />
           )}
         </>
@@ -124,7 +129,7 @@ const CameraComponent = () => {
         )}
       </button>
 
-      <button
+      {/* <button
         onClick={toggleMic}
         className="absolute bottom-4 right-20 z-10 p-3 rounded-full bg-foreground hover:bg-foreground/90 shadow-lg flex items-center justify-center"
       >
@@ -133,7 +138,7 @@ const CameraComponent = () => {
         ) : (
           <MicOff className="w-5 h-5 text-error" />
         )}
-      </button>
+      </button> */}
     </div>
   );
 };
