@@ -1,4 +1,4 @@
-"use client";
+import { Suspense } from "react";
 import Image from "next/image";
 import LoginForm from "./LoginForm";
 import OauthButtons from "@/components/ui/oauth-buttons";
@@ -22,13 +22,14 @@ export default function LoginPage() {
             Please login to your account to continue
           </p>
         </div>
-        <LoginForm />
+        <Suspense fallback={<div className="h-40" />}>
+          <LoginForm />
+        </Suspense>
         <div className="flex items-center gap-3 my-11">
           <hr className="flex-1 border-muted" />
           <p className="text-sm text-tertiary">or</p>
           <hr className="flex-1 border-muted" />
         </div>
-
         <OauthButtons />
       </div>
     </div>
