@@ -1,3 +1,5 @@
+"use client";
+
 import { Suspense } from "react";
 import Image from "next/image";
 import LoginForm from "./LoginForm";
