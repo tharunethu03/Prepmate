@@ -9,6 +9,8 @@ import { useSession } from "next-auth/react";
 import Agent from "@/components/ui/Agent";
 import { Keyboard, Mic, MicOff } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import BadgeAwardModal from "@/components/ui/BadgeAwardModal";
 
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
@@ -71,6 +73,17 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
   const [textMode, setTextMode] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [phase, setPhase] = useState<Phase>("answering");
+  const [badgeQueue, setBadgeQueue] = useState<
+    {
+      name: string;
+      description: string;
+      emoji: string;
+      xpReward: number;
+    }[]
+  >([]);
+  const [currentBadge, setCurrentBadge] = useState<
+    (typeof badgeQueue)[0] | null
+  >(null);
 
   // ── Refs ────────────────────────────────────────────────────
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -244,6 +257,13 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
       setResult({ score: data.score, xpEarned: data.xpEarned });
       setAllowNavigation(true);
       setSubmitted(true);
+
+      // Queue up new badges
+      if (data.newBadges?.length > 0) {
+        const [first, ...rest] = data.newBadges;
+        setCurrentBadge(first);
+        setBadgeQueue(rest);
+      }
     } catch (err) {
       console.error("Submit failed:", err);
     } finally {
@@ -260,6 +280,18 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
     updatePhase("confirming");
     updateCurrentAnswer("");
     speak(msg, () => startListening());
+  };
+
+  const handleBadgeClose = () => {
+    setCurrentBadge(null);
+    setTimeout(() => {
+      setBadgeQueue((prev) => {
+        if (prev.length === 0) return prev;
+        const [next, ...rest] = prev;
+        setCurrentBadge(next);
+        return rest;
+      });
+    }, 500); // small delay between badges
   };
 
   // ── Move to next question ───────────────────────────────────
@@ -286,6 +318,15 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
       { role: "user", content: answer },
     ];
 
+    const fallback = () => {
+      const newResponses = [
+        ...responsesRef.current,
+        { questionId: currentQ.id, userAnswer: answer || "No answer" },
+      ];
+      updateResponses(newResponses);
+      askReadyToMoveOn(isLast);
+    };
+
     try {
       const res = await fetch("/api/interviews/converse", {
         method: "POST",
@@ -306,6 +347,22 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
         }),
       });
 
+      if (res.status === 429) {
+        toast.error("AI request limit reached. Continuing without feedback.");
+        const msg =
+          "You've reached your request limit. Let's continue without AI feedback for now.";
+        setAiMessage(msg);
+        const newResponses = [
+          ...responsesRef.current,
+          { questionId: currentQ.id, userAnswer: answer || "No answer" },
+        ];
+        updateResponses(newResponses);
+        speak(msg, () => askReadyToMoveOn(isLast));
+        return;
+      }
+
+      if (!res.ok) throw new Error("AI failed");
+
       const data: { message: string; action: "ready" | "hint" | "explain" } =
         await res.json();
 
@@ -317,7 +374,6 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
       setAiMessage(data.message);
 
       if (data.action === "ready") {
-        // Save answer and ask to move on
         const newResponses = [
           ...responsesRef.current,
           { questionId: currentQ.id, userAnswer: answer },
@@ -325,7 +381,6 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
         updateResponses(newResponses);
         speak(data.message, () => askReadyToMoveOn(isLast));
       } else if (data.action === "explain") {
-        // Save answer (they don't know it), ask to move on after explaining
         const newResponses = [
           ...responsesRef.current,
           { questionId: currentQ.id, userAnswer: answer || "Did not know" },
@@ -333,20 +388,15 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
         updateResponses(newResponses);
         speak(data.message, () => askReadyToMoveOn(isLast));
       } else {
-        // "hint" — don't save yet, stay on same question
+        // "hint" — stay on same question
         speak(data.message, () => {
           updateCurrentAnswer("");
           startListening();
         });
       }
     } catch {
-      // Fallback — save and move on
-      const newResponses = [
-        ...responsesRef.current,
-        { questionId: currentQ.id, userAnswer: answer || "No answer" },
-      ];
-      updateResponses(newResponses);
-      askReadyToMoveOn(isLast);
+      // Network error or AI failed — fallback gracefully
+      fallback();
     } finally {
       setAiThinking(false);
       updateCurrentAnswer("");
@@ -498,6 +548,7 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
             </Button>
           </div>
         </div>
+        <BadgeAwardModal badge={currentBadge} onClose={handleBadgeClose} />
       </div>
     );
   }
@@ -756,6 +807,7 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
           </div>
         </div>
       )}
+      <BadgeAwardModal badge={currentBadge} onClose={handleBadgeClose} />
     </div>
   );
 }

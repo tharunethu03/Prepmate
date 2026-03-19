@@ -1,6 +1,7 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { converseRatelimit } from "@/lib/ratelimit";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -27,6 +28,15 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { success } = await converseRatelimit.limit(session.user.id);
+
+  if (!success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down." },
+      { status: 429 },
+    );
+  }
 
   const body: ConverseBody = await req.json();
 

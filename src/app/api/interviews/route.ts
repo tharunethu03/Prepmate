@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { awardXp } from "@/lib/xp";
 import { XpReason } from "@/generated/prisma/client";
+import { checkAndAwardBadges } from "@/lib/badges";
 
 type CreateInterviewQuestion = {
   question: string;
@@ -94,6 +95,8 @@ export async function POST(req: Request) {
       },
     });
 
+    await checkAndAwardBadges(session.user.id);
+
     // Award XP for creating an interview (creators only)
     if (user?.role === "CREATOR" || user?.role === "ADMIN") {
       await awardXp(
@@ -127,15 +130,21 @@ export async function GET(req: Request) {
     const page = Number(searchParams.get("page")) || 1;
     const limit = Number(searchParams.get("limit")) || 10;
     const saved = searchParams.get("saved");
-
     const session = await getServerSession(authOptions);
-
     const now = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(now.getDate() - 30);
-
     const where: Prisma.InterviewWhereInput = {};
+    const following = searchParams.get("following");
+    const popular = searchParams.get("popular");
+    const creators = searchParams.get("creators");
 
+    if (creators === "true") {
+      where.visibility = "public";
+      where.creator = {
+        role: "CREATOR",
+      };
+    }
     if (visibility === "public" || visibility === "private") {
       where.visibility = visibility;
     }
@@ -167,13 +176,29 @@ export async function GET(req: Request) {
       }
       where.savedInterviews = { some: { userId: session.user.id } };
     }
+    if (following === "true") {
+      if (!session?.user?.id)
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+      const followedCreators = await prisma.creatorFollow.findMany({
+        where: { followerId: session.user.id },
+        select: { creatorId: true },
+      });
+
+      where.createdBy = {
+        in: followedCreators.map((f) => f.creatorId),
+      };
+      where.visibility = "public";
+    }
 
     const interviews = await prisma.interview.findMany({
       where,
       orderBy:
         trending === "true"
-          ? { attempts: { _count: "desc" } } // was: candidates
-          : { createdAt: "desc" },
+          ? { attempts: { _count: "desc" } }
+          : popular === "true"
+            ? { likes: { _count: "desc" } }
+            : { createdAt: "desc" },
       include: {
         creator: { select: { id: true, name: true, avatar: true } },
         // Show avatars of first 5 people who attempted

@@ -4,8 +4,8 @@ import { Crown, Plus, Sparkles } from "lucide-react";
 import Image from "next/image";
 import AddFriendsModal from "./components/addFriendsModal";
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type LeaderboardEntry = {
   id: string;
@@ -17,10 +17,18 @@ type LeaderboardEntry = {
 
 const LeaderboardPage = () => {
   const [showAddFriendsModal, setShowAddFriendsModal] = useState(false);
-
   const [friends, setFriends] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
+  const router = useRouter();
+
+  const handleProfileClick = (friend: LeaderboardEntry) => {
+    if (friend.id === session?.user?.id) {
+      router.push("/profile");
+    } else {
+      router.push(`/profile/${friend.id}`);
+    }
+  };
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -29,7 +37,6 @@ const LeaderboardPage = () => {
           fetch("/api/friends"),
           fetch("/api/profile"),
         ]);
-
         const friendsData = await friendsRes.json();
         const profileData = await profileRes.json();
 
@@ -58,16 +65,16 @@ const LeaderboardPage = () => {
       {/* Podium - top 3 */}
       <div className="bg-accent-gradient w-full py-10 px-10 mx-auto rounded-[22px] flex items-center justify-center gap-20">
         {friends.slice(0, 3).map((friend, index) => (
-          <div key={friend.id} className="flex flex-col items-center">
+          <div
+            key={friend.id}
+            className="flex flex-col items-center cursor-pointer"
+            onClick={() => handleProfileClick(friend)}
+          >
             <div className="relative flex flex-col items-center">
               {index === 0 && (
                 <Crown
                   size={40}
-                  className={`absolute -top-1 left-0 rotate-333 ${
-                    friend.id === session?.user?.id
-                      ? "text-warning fill-warning"
-                      : "text-warning fill-warning"
-                  }`}
+                  className="absolute -top-1 left-0 rotate-333 text-warning fill-warning"
                 />
               )}
               <Image
@@ -75,17 +82,13 @@ const LeaderboardPage = () => {
                 alt="Avatar"
                 width={100}
                 height={100}
-                className={`border-4 rounded-full mt-6 ${
-                  friend.id === session?.user?.id
-                    ? "border-warning"
-                    : "border-warning"
-                }`}
+                className="border-4 border-warning rounded-full mt-6 hover:opacity-80 transition-opacity"
               />
               <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-warning text-foreground font-bold rounded-full px-4 py-1.5 text-lg">
                 {index + 1}
               </span>
             </div>
-            <h4 className="text-foreground text-lg font-semibold mt-5">
+            <h4 className="text-foreground text-lg font-semibold mt-5 hover:text-white/80">
               {friend.name} {friend.id === session?.user?.id && "(You)"}
             </h4>
             <div className="flex gap-5 text-warning">
@@ -106,7 +109,8 @@ const LeaderboardPage = () => {
         {friends.slice(3).map((friend, index) => (
           <div
             key={friend.id}
-            className={`flex w-full border rounded-[12px] py-3 px-10 items-center justify-between ${
+            onClick={() => handleProfileClick(friend)}
+            className={`flex w-full border rounded-[12px] py-3 px-10 items-center justify-between cursor-pointer hover:border-accent transition-colors ${
               friend.id === session?.user?.id
                 ? "border-accent bg-accent/10"
                 : "border-tertiary"

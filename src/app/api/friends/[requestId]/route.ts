@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { awardXp } from "@/lib/xp";
 import { XpReason } from "@/generated/prisma/client";
+import { checkAndAwardBadges } from "@/lib/badges";
 
 // PATCH /api/friends/[requestId] — accept or decline
 export async function PATCH(
@@ -60,6 +61,9 @@ export async function PATCH(
 
     return NextResponse.json({ status: "accepted" });
   }
+
+  await checkAndAwardBadges(request.senderId);
+  await checkAndAwardBadges(request.receiverId);
 
   return NextResponse.json(
     { error: "action must be accept or decline" },

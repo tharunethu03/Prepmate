@@ -124,7 +124,17 @@ export default function InterviewForm({
         }),
       });
 
-      if (!res.ok) throw new Error("Generation failed");
+      if (!res.ok) {
+        const err = await res.json();
+        if (res.status === 429) {
+          setGenerateError(
+            err.error ?? "Daily limit reached. Try again tomorrow.",
+          );
+        } else {
+          setGenerateError("Failed to generate questions. Please try again.");
+        }
+        throw new Error("Generation failed");
+      }
 
       const { questions: generated } = await res.json();
 
@@ -179,7 +189,17 @@ export default function InterviewForm({
         }),
       });
 
-      if (!res.ok) throw new Error("Enhancement failed");
+      if (!res.ok) {
+        const err = await res.json();
+        if (res.status === 429) {
+          setEnhanceError(
+            err.error ?? "Daily limit reached. Try again tomorrow.",
+          );
+        } else {
+          setEnhanceError("Failed to generate answers. Please try again.");
+        }
+        throw new Error("Enhancement failed");
+      }
 
       const { questions: enhanced } = await res.json();
 
@@ -572,7 +592,16 @@ export default function InterviewForm({
           {showQuestions && (
             <div className="flex flex-col gap-2">
               {generateError && (
-                <p className="text-error text-xs">{generateError}</p>
+                <p
+                  className={`text-xs text-right ${
+                    generateError.includes("limit")
+                      ? "text-warning"
+                      : "text-error"
+                  }`}
+                >
+                  {generateError.includes("limit") ? "⚠️ " : ""}
+                  {generateError}
+                </p>
               )}
 
               {/* Show generated questions (editable) */}

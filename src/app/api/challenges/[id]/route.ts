@@ -20,6 +20,11 @@ export async function PATCH(
     return NextResponse.json({ error: "Challenge not found" }, { status: 404 });
   if (challenge.challengedId !== session.user.id)
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (challenge.status !== "PENDING")
+    return NextResponse.json(
+      { error: "Challenge already handled" },
+      { status: 409 },
+    );
 
   if (action === "decline") {
     await prisma.challenge.update({

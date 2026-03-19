@@ -108,7 +108,13 @@ const InterviewPreviewModal = ({
         <div className="flex flex-col h-full">
           <h2>{interview.title}</h2>
           <div className="flex gap-2 my-5 flex-wrap">
-            <div className="flex bg-accent w-fit px-3 py-1 rounded-[12px] gap-1 items-center">
+            <div
+              className="flex bg-accent w-fit px-2 sm:px-3 py-1 sm:py-1.5 rounded-[12px] gap-1 items-center text-xs sm:text-xs cursor-pointer hover:opacity-80"
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/profile/${interview.createdBy}`);
+              }}
+            >
               <Image
                 src={interview.creator?.avatar || "/profile-setup/avatar1.png"}
                 width={25}
@@ -116,7 +122,7 @@ const InterviewPreviewModal = ({
                 alt="AVATAR"
                 className="rounded-full"
               />
-              <span className="text-foreground font-bold text-xs">
+              <span className="text-foreground font-bold truncate max-w-[100px] md:max-w-[120px]">
                 {interview.creator?.name || "Unknown"}
               </span>
             </div>
@@ -156,22 +162,26 @@ const InterviewPreviewModal = ({
             className="border w-full px-3 py-3 mt-5"
           >
             {showQuestions ? (
-              <div className="flex items-center justify-between w-full text-secondary">
-                <p className="text-sm">Preview interview questions</p>
-                <p className=" text-xs">
+              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between w-full">
+                <p className="text-xs md:text-sm">
+                  Preview interview questions
+                </p>
+                <p className=" text-xs text-secondary text-start flex items-center">
                   (Not recommended if you want an authentic interview
                   experience)
+                  <ChevronUp size={20} className="text-secondary" />
                 </p>
-                <ChevronUp />
               </div>
             ) : (
-              <div className="flex items-center justify-between w-full">
-                <p className="text-sm">Preview interview questions</p>
-                <p className=" text-xs text-error">
+              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between w-full">
+                <p className="text-xs md:text-sm">
+                  Preview interview questions
+                </p>
+                <p className=" text-xs text-error text-start flex items-center">
                   (Not recommended if you want an authentic interview
                   experience)
+                  <ChevronDown size={20} className="text-secondary" />
                 </p>
-                <ChevronDown />
               </div>
             )}
           </button>

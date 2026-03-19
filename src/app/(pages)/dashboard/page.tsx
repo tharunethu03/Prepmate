@@ -1,22 +1,24 @@
 "use client";
 import OnboardingOverlay from "@/app/(auth)/onboarding/page";
 import { Interview } from "@/app/types/interview";
-import InterviewModal from "@/components/ui/interview-modal";
 import InterviewPreviewModal from "@/components/ui/interview-preview-modal";
-import { LoaderOne } from "@/components/ui/loader";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import WelcomeCard from "./components/WelcomeCard";
+import PendingChallenges from "./components/PendingChallenges";
+import FollowingFeed from "./components/FollowingFeed";
+import TrendingInterviews from "./components/TrendingInterviews";
+import MostLoved from "./components/MostLoved";
+import DiscoverCreators from "./components/DiscoverCreators";
 
 const DashboardPage = () => {
   const { data: session, status, update } = useSession();
   const [dismissed, setDismissed] = useState(false);
-  const [interviews, setInterviews] = useState<Interview[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedInterview, setSelectedInterview] = useState<Interview | null>(
     null,
   );
-
   const router = useRouter();
 
   const showOnboarding =
@@ -25,57 +27,33 @@ const DashboardPage = () => {
     !dismissed;
 
   const handleClose = async () => {
-    await fetch("/api/onboarding/complete", {
-      method: "POST",
-    });
-    await update({
-      onboardingCompleted: true,
-    });
+    await fetch("/api/onboarding/complete", { method: "POST" });
+    await update({ onboardingCompleted: true });
     setDismissed(true);
     router.refresh();
   };
 
-  useEffect(() => {
-    const fetchInterviews = async () => {
-      try {
-        const res = await fetch(
-          "/api/interviews?visibility=public&trending=true&page=1&limit=10",
-        );
-        const data = await res.json();
-
-        console.log("Fetched interviews:", data);
-
-        setInterviews(data.interviews ?? []);
-      } catch (error) {
-        console.log("Failed to fetch interviews", error);
-        setInterviews([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInterviews();
-  }, []);
+  const sections = [
+    <WelcomeCard key="welcome" />,
+    <PendingChallenges key="challenges" />,
+    <FollowingFeed key="following" onPreview={setSelectedInterview} />,
+    <TrendingInterviews key="trending" onPreview={setSelectedInterview} />,
+    <MostLoved key="loved" onPreview={setSelectedInterview} />,
+    <DiscoverCreators key="creators" />,
+  ];
 
   return (
-    <div className="py-5">
-      <h2>Top Interviews This Month</h2>
-      <div>
-        {loading && (
-          <div className="flex items-center justify-center h-full">
-            <LoaderOne />
-          </div>
-        )}
-      </div>
-      <div className="flex flex-row md:flex-wrap gap-x-3 gap-y-5 overflow-x-auto mt-5 scrollbar-hide">
-        {interviews.map((interview) => (
-          <InterviewModal
-            key={interview.id}
-            interview={interview}
-            onPreview={() => setSelectedInterview(interview)}
-          />
-        ))}
-      </div>
+    <div className="py-5 flex flex-col gap-8">
+      {sections.map((section, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.05 }}
+        >
+          {section}
+        </motion.div>
+      ))}
 
       {showOnboarding && <OnboardingOverlay onFinish={handleClose} />}
       {selectedInterview && (

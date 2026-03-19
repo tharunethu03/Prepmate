@@ -113,12 +113,18 @@ const InterviewModal = ({
     <TooltipPrimitive.Provider delayDuration={1000}>
       <div
         onClick={onPreview}
-        className="flex flex-col gap-3 w-full shadow-lg min-w-85 md:min-w-100 max-w-85 md:max-w-100 h-70 bg-foreground border-2 border-border px-4 sm:px-8 py-4 sm:py-5 rounded-[22px] hover:scale-102 transition-transform cursor-pointer"
+        className="flex flex-col gap-3 w-full shadow-lg min-w-85 md:min-w-100 max-w-85 md:max-w-100 h-70 bg-foreground border border-border px-4 sm:px-8 py-4 sm:py-5 rounded-[22px] hover:scale-102 transition-transform cursor-pointer"
       >
         <h2 className="text-sm sm:text-lg font-semibold">{interview.title}</h2>
 
         <div className="flex flex-wrap gap-2 sm:gap-2">
-          <div className="flex bg-accent w-fit px-2 sm:px-3 py-1 sm:py-1.5 rounded-[12px] gap-1 items-center text-xs sm:text-xs">
+          <div
+            className="flex bg-accent w-fit px-2 sm:px-3 py-1 sm:py-1.5 rounded-[12px] gap-1 items-center text-xs sm:text-xs cursor-pointer hover:opacity-80"
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/profile/${interview.createdBy}`);
+            }}
+          >
             <Image
               src={interview.creator?.avatar || "/profile-setup/avatar1.png"}
               width={25}

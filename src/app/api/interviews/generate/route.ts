@@ -1,6 +1,7 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { generateRatelimit } from "@/lib/ratelimit";
 
 type GenerateBody = {
   role: string;
@@ -21,6 +22,24 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Rate limit by user ID
+  const { success, limit, remaining, reset } = await generateRatelimit.limit(
+    session.user.id,
+  );
+
+  if (!success) {
+    return NextResponse.json(
+      {
+        error:
+          "You've reached your daily limit for AI generation. Try again tomorrow.",
+        limit,
+        remaining,
+        reset,
+      },
+      { status: 429 },
+    );
+  }
 
   const {
     role,

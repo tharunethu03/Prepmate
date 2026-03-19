@@ -2,8 +2,10 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { awardXp } from "@/lib/xp";
+import { XpReason } from "@/generated/prisma/client";
+import { checkAndAwardBadges } from "@/lib/badges";
 
-// GET /api/challenges — get challenges sent to me + ones I sent
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id)
@@ -22,7 +24,15 @@ export async function GET() {
             title: true,
             difficulty: true,
             questionCount: true,
+            role: true,
+            topics: true,
           },
+        },
+        attempts: {
+          where: { userId },
+          orderBy: { startedAt: "desc" },
+          take: 1,
+          select: { id: true, score: true, status: true },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -37,7 +47,15 @@ export async function GET() {
             title: true,
             difficulty: true,
             questionCount: true,
+            role: true,
+            topics: true,
           },
+        },
+        attempts: {
+          where: { userId: { not: userId } },
+          orderBy: { startedAt: "desc" },
+          take: 1,
+          select: { id: true, score: true, status: true, userId: true },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -47,7 +65,6 @@ export async function GET() {
   return NextResponse.json({ received, sent });
 }
 
-// POST /api/challenges — challenge a friend
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id)
@@ -73,23 +90,21 @@ export async function POST(req: Request) {
       { status: 403 },
     );
 
+  // Check interview exists and is accessible
+  const interview = await prisma.interview.findUnique({
+    where: { id: interviewId },
+    select: { id: true, visibility: true, createdBy: true },
+  });
+  if (!interview)
+    return NextResponse.json({ error: "Interview not found" }, { status: 404 });
+
   const challenge = await prisma.challenge.create({
     data: { challengerId, challengedId, interviewId, message: message ?? null },
   });
 
-  // Small XP for sending a challenge
-  await prisma.xpEvent.create({
-    data: {
-      userId: challengerId,
-      amount: 10,
-      reason: "CHALLENGE_SENT",
-      refId: challenge.id,
-    },
-  });
-  await prisma.user.update({
-    where: { id: challengerId },
-    data: { xp: { increment: 10 } },
-  });
+  await checkAndAwardBadges(challengerId);
+
+  await awardXp(challengerId, 10, XpReason.CHALLENGE_SENT, challenge.id);
 
   return NextResponse.json(challenge, { status: 201 });
 }

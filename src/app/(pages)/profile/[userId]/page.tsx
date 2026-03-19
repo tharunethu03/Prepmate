@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import ProfilePage from "./profilePage";
+import PublicProfilePage from "./publicProfilePage";
 
 export default function Page() {
   return (
     <Suspense fallback={<div />}>
-      <ProfilePage />
+      <PublicProfilePage />
     </Suspense>
   );
 }

@@ -2,6 +2,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { checkAndAwardBadges } from "@/lib/badges";
 
 type SubmitBody = {
   responses: { questionId: string; userAnswer: string }[];
@@ -142,6 +143,43 @@ export async function POST(
     }
 
     return [updated];
+  });
+
+  await checkAndAwardBadges(session.user.id);
+
+  // Get newly earned badges to show in UI
+  const userBadges = await prisma.userBadge.findMany({
+    where: {
+      userId: session.user.id,
+      earnedAt: { gte: new Date(Date.now() - 10000) }, // earned in last 10 seconds
+    },
+    include: {
+      badge: {
+        select: {
+          key: true,
+          name: true,
+          description: true,
+          icon: true,
+          xpReward: true,
+        },
+      },
+    },
+  });
+
+  const newBadges = userBadges.map((ub) => ({
+    key: ub.badge.key,
+    name: ub.badge.name,
+    description: ub.badge.description,
+    emoji: ub.badge.icon,
+    xpReward: ub.badge.xpReward,
+  }));
+
+  return NextResponse.json({
+    attemptId: updatedAttempt.id,
+    score: overallScore,
+    xpEarned,
+    responses: scoredResponses,
+    newBadges, // add this
   });
 
   return NextResponse.json({
