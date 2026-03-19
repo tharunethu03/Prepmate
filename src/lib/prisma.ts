@@ -1,13 +1,10 @@
-import { PrismaClient } from "../generated/prisma/client";
+// src/lib/prisma.ts — fix the import path
+import { PrismaClient } from "@/generated/prisma/client";
 
-const prisma = new PrismaClient();
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-const globalForPrisma = global as unknown as {
-  prisma: typeof prisma | undefined;
-};
+export const prisma = globalForPrisma.prisma || new PrismaClient();
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 export default prisma;
