@@ -1,4 +1,4 @@
-import { ProfileData } from "../page";
+import { ProfileData } from "../types";
 import { Sparkles, Trophy, BookOpen, Target } from "lucide-react";
 
 export default function StatsRow({ profile }: { profile: ProfileData | null }) {

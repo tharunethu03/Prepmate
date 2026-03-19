@@ -6,7 +6,7 @@ import { LoaderOne } from "@/components/ui/loader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import React, { useEffect, useState, useCallback } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Loader2, UserCheck, UserPlus } from "lucide-react";
 import Image from "next/image";
@@ -39,8 +39,27 @@ const SORT_OPTIONS = [
 
 const ExplorePage = () => {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
+  const initialSort =
+    searchParams.get("trending") === "true"
+      ? "trending"
+      : searchParams.get("popular") === "true"
+        ? "popular"
+        : searchParams.get("following") === "true"
+          ? "following"
+          : searchParams.get("creators") === "true"
+            ? "creators"
+            : "latest";
+
+  const [filters, setFilters] = useState<Filters>({
+    search: searchParams.get("search") ?? "",
+    difficulty: searchParams.get("difficulty") ?? "",
+    topic: searchParams.get("topic") ?? "",
+    sort: initialSort,
+  });
+
+  const [searchValue, setSearchValue] = useState(filters.search);
+  const [topicValue, setTopicValue] = useState(filters.topic);
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInterview, setSelectedInterview] = useState<Interview | null>(
@@ -50,26 +69,25 @@ const ExplorePage = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-
   const [creators, setCreators] = useState<Creator[]>([]);
   const [loadingCreators, setLoadingCreators] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const [filters, setFilters] = useState<Filters>({
-    search: searchParams.get("search") ?? "",
-    difficulty: searchParams.get("difficulty") ?? "",
-    topic: searchParams.get("topic") ?? "",
-    sort:
-      searchParams.get("trending") === "true"
-        ? "trending"
-        : searchParams.get("popular") === "true"
-          ? "popular"
-          : searchParams.get("following") === "true"
-            ? "following"
-            : searchParams.get("creators") === "true"
-              ? "creators"
-              : "latest",
-  });
+  // Debounce search
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, search: searchValue }));
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [searchValue]);
+
+  // Debounce topic
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, topic: topicValue }));
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [topicValue]);
 
   const buildUrl = (f: Filters, p: number) => {
     const params = new URLSearchParams();
@@ -110,12 +128,10 @@ const ExplorePage = () => {
     async (f: Filters, p: number, append = false) => {
       if (p === 1) setLoading(true);
       else setLoadingMore(true);
-
       try {
         const res = await fetch(buildUrl(f, p));
         const data = await res.json();
         const fetched: Interview[] = data.interviews ?? [];
-
         setInterviews((prev) => (append ? [...prev, ...fetched] : fetched));
         setHasMore(fetched.length === 9);
       } catch {
@@ -138,7 +154,6 @@ const ExplorePage = () => {
       .finally(() => setLoadingCreators(false));
   }, [filters.sort]);
 
-  // Fetch on filter change
   useEffect(() => {
     setPage(1);
     fetchInterviews(filters, 1);
@@ -150,16 +165,9 @@ const ExplorePage = () => {
     fetchInterviews(filters, nextPage, true);
   };
 
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      setFilters((prev) => ({
-        ...prev,
-        search: (e.target as HTMLInputElement).value,
-      }));
-    }
-  };
-
   const clearFilters = () => {
+    setSearchValue("");
+    setTopicValue("");
     setFilters({ search: "", difficulty: "", topic: "", sort: "latest" });
   };
 
@@ -180,8 +188,8 @@ const ExplorePage = () => {
           />
           <Input
             placeholder="Search interviews..."
-            defaultValue={filters.search}
-            onKeyDown={handleSearchKeyDown}
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
             className="pl-9 h-10"
           />
         </div>
@@ -229,7 +237,6 @@ const ExplorePage = () => {
       {/* Expandable filters */}
       {showFilters && (
         <div className="flex flex-wrap gap-4 border border-border rounded-[16px] p-4">
-          {/* Difficulty */}
           <div className="flex flex-col gap-2">
             <p className="text-xs text-secondary font-medium">Difficulty</p>
             <div className="flex gap-2">
@@ -254,28 +261,21 @@ const ExplorePage = () => {
             </div>
           </div>
 
-          {/* Topic search */}
           <div className="flex flex-col gap-2">
             <p className="text-xs text-secondary font-medium">Topic</p>
             <Input
               placeholder="e.g. React, Node.js"
-              defaultValue={filters.topic}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setFilters((prev) => ({
-                    ...prev,
-                    topic: (e.target as HTMLInputElement).value,
-                  }));
-                }
-              }}
+              value={topicValue}
+              onChange={(e) => setTopicValue(e.target.value)}
               className="h-8 text-xs w-48"
             />
           </div>
+
           {hasActiveFilters && (
             <div className="w-full flex justify-end border-t border-border pt-3 mt-1">
               <Button
                 variant="ghost"
-                className="h-8 text-xs text-secondary hover:text-background flex items-center gap-1 "
+                className="h-8 text-xs text-secondary hover:text-error flex items-center gap-1"
                 onClick={clearFilters}
               >
                 <X size={12} /> Clear all filters
@@ -370,8 +370,6 @@ const ExplorePage = () => {
               />
             ))}
           </div>
-
-          {/* Load more */}
           {hasMore && (
             <div className="flex justify-center mt-4">
               <Button
@@ -386,6 +384,7 @@ const ExplorePage = () => {
           )}
         </>
       )}
+
       {selectedInterview && (
         <InterviewPreviewModal
           interview={selectedInterview}

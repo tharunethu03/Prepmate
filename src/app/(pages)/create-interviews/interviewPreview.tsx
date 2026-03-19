@@ -10,12 +10,11 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { SortableQuestion } from "@/components/ui/sortable-question";
 import { Interview } from "@/app/types/interview";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 type Question = {
   id: string;
@@ -41,8 +40,8 @@ type InterviewPreviewProps = {
   data: InterviewPreviewData;
   onBack: () => void;
   onConfirm: () => void;
-  onCreate: (interview: Interview) => void; // ✅ add this
-  interview: Interview;
+  onCreate: (interview: Interview) => void;
+  interview?: Interview;
 };
 
 export default function InterviewPreview({
@@ -129,18 +128,18 @@ export default function InterviewPreview({
             className="flex bg-accent w-fit px-2 sm:px-3 py-1 sm:py-1.5 rounded-[12px] gap-1 items-center text-xs sm:text-xs cursor-pointer hover:opacity-80"
             onClick={(e) => {
               e.stopPropagation();
-              router.push(`/profile/${interview.createdBy}`);
+              router.push(`/profile/${interview?.createdBy}`);
             }}
           >
             <Image
-              src={interview.creator?.avatar || "/profile-setup/avatar1.png"}
+              src={interview?.creator?.avatar || "/profile-setup/avatar1.png"}
               width={25}
               height={25}
               alt="AVATAR"
               className="rounded-full"
             />
             <span className="text-foreground font-bold truncate max-w-[100px] md:max-w-[120px]">
-              {interview.creator?.name || "Unknown"}
+              {interview?.creator?.name || "Unknown"}
             </span>
           </div>
           <div className="flex bg-accent w-fit px-3 py-1.5 rounded-[12px] gap-1 items-center">

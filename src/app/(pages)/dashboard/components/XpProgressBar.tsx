@@ -1,4 +1,4 @@
-import { ProfileData } from "../page";
+import { ProfileData } from "../types";
 
 export default function XpProgressBar({
   profile,

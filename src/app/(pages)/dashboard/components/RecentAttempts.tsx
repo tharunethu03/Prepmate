@@ -1,8 +1,8 @@
-import { RecentAttempt } from "../page";
 import { Target, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { RecentAttempt } from "../types";
 
 function difficultyColor(d: string) {
   if (d === "beginner") return "#22c55e";
