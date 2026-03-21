@@ -8,11 +8,9 @@ type Message = { role: "user" | "assistant"; content: string };
 type ConverseBody = {
   mode: "evaluate" | "check_ready";
   userMessage: string;
-  // evaluate mode fields
   currentQuestionIndex?: number;
   questions?: { id: string; question: string }[];
   history?: Message[];
-
   userName?: string;
   role?: string;
   difficulty?: string;
@@ -29,18 +27,18 @@ export async function POST(req: Request) {
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { success } = await converseRatelimit.limit(session.user.id);
-
-  if (!success) {
-    return NextResponse.json(
-      { error: "Too many requests. Please slow down." },
-      { status: 429 },
-    );
+  if (converseRatelimit) {
+    const { success } = await converseRatelimit.limit(session.user.id);
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down." },
+        { status: 429 },
+      );
+    }
   }
 
   const body: ConverseBody = await req.json();
 
-  // ── Simple yes/no check — no Groq needed ──────────────────
   if (body.mode === "check_ready") {
     const msg = body.userMessage?.toLowerCase() ?? "";
     const notReady = [
@@ -54,7 +52,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ready: !notReady });
   }
 
-  // ── Evaluate answer mode ───────────────────────────────────
   const {
     userMessage,
     currentQuestionIndex = 0,
@@ -108,7 +105,6 @@ CRITICAL: Respond ONLY with raw JSON. No markdown. No extra text.
     if (!res.ok) {
       const err = await res.json();
       console.error("Groq error:", err);
-      // Fallback — treat as ready
       return NextResponse.json({
         message: "Good effort! Are you ready to move on?",
         action: "ready",
@@ -121,10 +117,8 @@ CRITICAL: Respond ONLY with raw JSON. No markdown. No extra text.
 
     let parsed: EvaluateResponse;
     try {
-      // Try direct parse
       parsed = JSON.parse(cleaned);
     } catch {
-      // Try extracting JSON from mixed content
       const match = cleaned.match(/\{[\s\S]*\}/);
       if (match) {
         try {
@@ -140,11 +134,9 @@ CRITICAL: Respond ONLY with raw JSON. No markdown. No extra text.
       }
     }
 
-    // Safety: strip any JSON from message
     parsed.message =
       parsed.message?.replace(/\{[\s\S]*\}/g, "").trim() ?? "Good answer!";
 
-    // Validate action
     if (!["ready", "hint", "explain"].includes(parsed.action)) {
       parsed.action = "ready";
     }

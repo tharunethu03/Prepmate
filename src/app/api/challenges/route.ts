@@ -102,8 +102,6 @@ export async function POST(req: Request) {
     data: { challengerId, challengedId, interviewId, message: message ?? null },
   });
 
-  await checkAndAwardBadges(challengerId);
-
   await awardXp(challengerId, 10, XpReason.CHALLENGE_SENT, challenge.id);
 
   return NextResponse.json(challenge, { status: 201 });

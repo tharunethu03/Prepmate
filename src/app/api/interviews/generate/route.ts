@@ -23,24 +23,25 @@ export async function POST(req: Request) {
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Rate limit by user ID
-  const { success, limit, remaining, reset } = await generateRatelimit.limit(
-    session.user.id,
-  );
-
-  if (!success) {
-    return NextResponse.json(
-      {
-        error:
-          "You've reached your daily limit for AI generation. Try again tomorrow.",
-        limit,
-        remaining,
-        reset,
-      },
-      { status: 429 },
+  if (generateRatelimit) {
+    const { success, limit, remaining, reset } = await generateRatelimit.limit(
+      session.user.id,
     );
+    if (!success) {
+      return NextResponse.json(
+        {
+          error:
+            "You've reached your daily limit for AI generation. Try again tomorrow.",
+          limit,
+          remaining,
+          reset,
+        },
+        { status: 429 },
+      );
+    }
   }
 
+  const body = await req.json();
   const {
     role,
     topics,
@@ -48,13 +49,31 @@ export async function POST(req: Request) {
     interviewType,
     questionCount,
     existingQuestions,
-  }: GenerateBody = await req.json();
+  }: GenerateBody = body;
 
-  if (!role || !topics?.length || !difficulty || !interviewType)
-    return NextResponse.json(
-      { error: "role, topics, difficulty, interviewType required" },
-      { status: 400 },
-    );
+  // Different validation for enhance mode vs generate mode
+  if (existingQuestions?.length) {
+    if (!role || !difficulty)
+      return NextResponse.json(
+        { error: "role and difficulty required" },
+        { status: 400 },
+      );
+  } else {
+    if (
+      !role ||
+      !topics?.length ||
+      !difficulty ||
+      !interviewType ||
+      !questionCount
+    )
+      return NextResponse.json(
+        {
+          error:
+            "role, topics, difficulty, interviewType, questionCount required",
+        },
+        { status: 400 },
+      );
+  }
 
   const typeDescriptions = {
     technical:
@@ -65,10 +84,8 @@ export async function POST(req: Request) {
     mixed: "a mix of technical, behavioral, and situational questions",
   };
 
-  // ── Two different prompts depending on mode ──────────────────
   const prompt = existingQuestions?.length
-    ? // Custom mode: user provided questions, AI fills answers + keywords only
-      `You are an expert interviewer. For each of the following interview questions for a ${difficulty}-level ${role} position, generate an ideal answer and keywords.
+    ? `You are an expert interviewer. For each of the following interview questions for a ${difficulty}-level ${role} position, generate an ideal answer and keywords.
 
 Questions:
 ${existingQuestions.map((q, i) => `${i + 1}. ${q}`).join("\n")}
@@ -82,8 +99,7 @@ Each item must have exactly these fields:
 
 Example format:
 [{"question":"...","answer":"...","keywords":["keyword1","keyword2"]}]`
-    : // AI mode: generate everything from scratch
-      `You are an expert interviewer. Generate exactly ${questionCount} ${typeDescriptions[interviewType]} for a ${difficulty}-level ${role} position.
+    : `You are an expert interviewer. Generate exactly ${questionCount} ${typeDescriptions[interviewType]} for a ${difficulty}-level ${role} position.
 
 Topics to cover: ${topics.join(", ")}
 
