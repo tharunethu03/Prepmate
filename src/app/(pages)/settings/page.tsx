@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { LoaderOne } from "@/components/ui/loader";
+import EditProfileModal from "./EditProfileModal";
 
 type PrivacySettings = {
   showXp: boolean;
@@ -20,6 +21,7 @@ const SettingsPage = () => {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -62,18 +64,24 @@ const SettingsPage = () => {
         <h3 className="mb-3">Profile & Account</h3>
         <div className="flex flex-col gap-2">
           {[
-            { label: "Edit profile", href: "/profile?edit=true" },
+            // { label: "Edit profile", href: "/profile?edit=true" },
             { label: "Change password" },
             { label: "Request creator account" },
           ].map((item) => (
             <button
               key={item.label}
-              onClick={() => item.href && (window.location.href = item.href)}
+              // onClick={() => item.href && (window.location.href = item.href)}
               className="w-full border border-border hover:border-accent text-start px-5 py-2.5 rounded-[12px] text-secondary hover:text-primary transition-colors"
             >
               {item.label}
             </button>
           ))}
+          <button
+            onClick={() => setShowEditProfile(true)}
+            className="w-full border border-border hover:border-accent text-start px-5 py-2.5 rounded-[12px] text-secondary hover:text-primary transition-colors"
+          >
+            Edit profile
+          </button>
           <button className="w-full border border-error/30 hover:border-error text-start px-5 py-2.5 rounded-[12px] text-error/70 hover:text-error transition-colors">
             Delete account
           </button>
@@ -128,6 +136,9 @@ const SettingsPage = () => {
           ))}
         </div>
       </div>
+      {showEditProfile && (
+        <EditProfileModal onClose={() => setShowEditProfile(false)} />
+      )}
     </div>
   );
 };
