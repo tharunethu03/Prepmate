@@ -41,7 +41,7 @@ export default function WelcomeCard() {
           width={72}
           height={72}
           alt="avatar"
-          className="rounded-full border-3 border-background ring-2 ring-white/30 shrink-0"
+          className="rounded-full border-3 border-transparent ring-3 ring-foreground shrink-0"
         />
         <div>
           <h4 className="text-foreground font-bold text-2xl">

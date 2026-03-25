@@ -10,6 +10,7 @@ type DropdownProps = {
   placeholder?: string;
   className?: string;
   onChange?: (value: string) => void;
+  value?: string; // optional — for pre-population
 };
 
 export function Dropdown({
@@ -18,18 +19,24 @@ export function Dropdown({
   placeholder = "Select",
   className,
   onChange,
+  value,
 }: DropdownProps) {
   const [open, setOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState<string>("");
+  const [selected, setSelected] = React.useState<string>(value ?? "");
 
   const wrapperRef = React.useRef<HTMLDivElement>(null);
 
+  // Sync if value prop changes externally
+  React.useEffect(() => {
+    if (value !== undefined) setSelected(value);
+  }, [value]);
+
   const toggle = () => setOpen(!open);
 
-  const handleSelect = (value: string) => {
-    setSelected(value);
+  const handleSelect = (val: string) => {
+    setSelected(val);
     setOpen(false);
-    onChange?.(value);
+    onChange?.(val);
   };
 
   React.useEffect(() => {
@@ -41,14 +48,12 @@ export function Dropdown({
         setOpen(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
     <div ref={wrapperRef} className="relative w-fit">
-      {/* Button */}
       <button
         type="button"
         onClick={toggle}
@@ -66,7 +71,6 @@ export function Dropdown({
         >
           {selected || placeholder}
         </span>
-
         {open ? (
           <ChevronUp className="text-tertiary" size={18} />
         ) : (
@@ -74,12 +78,10 @@ export function Dropdown({
         )}
       </button>
 
-      {/* Options */}
       {open && (
         <div className="absolute mt-2 w-full rounded-[12px] bg-foreground border border-border shadow-md overflow-hidden z-20">
           {options.map((option, index) => {
             const color = colors?.[index];
-
             return (
               <button
                 type="button"
@@ -96,7 +98,6 @@ export function Dropdown({
                     style={{ backgroundColor: color }}
                   />
                 )}
-
                 <span className="text-sm">{option}</span>
               </button>
             );
