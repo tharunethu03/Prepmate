@@ -1,10 +1,8 @@
 import prisma from "@/lib/prisma";
 import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
+import transporter from "@/lib/mailer";
 import crypto from "crypto";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   try {
@@ -33,13 +31,13 @@ export async function POST(req: Request) {
 
     const verifyUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${token}`;
 
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL!,
+    await transporter.sendMail({
+      from: `"Prepmate" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "Verify your Prepmate email",
       html: `
-        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-          <h2>Verify your email</h2>
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+          <h2 style="color: #6366f1;">Welcome to Prepmate! 🎯</h2>
           <p>Hi there,</p>
           <p>Thanks for signing up! Click the button below to verify your email address. This link expires in 24 hours.</p>
           <a href="${verifyUrl}"

@@ -1,9 +1,7 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import transporter from "@/lib/mailer";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -19,18 +17,20 @@ export async function POST(req: Request) {
     );
 
   try {
-    await resend.emails.send({
-      from: session.user.email,
-      to: process.env.RESEND_FROM_EMAIL!,
+    await transporter.sendMail({
+      from: `"Prepmate" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER,
+      replyTo: session.user.email,
       subject: `[Prepmate Help] ${subject}`,
       html: `
-        <h2>Help Request from ${session.user.name}</h2>
-        <p><strong>Email:</strong> ${session.user.email}</p>
-        <p><strong>Subject:</strong> ${subject}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message}</p>
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+          <h2 style="color: #6366f1;">Help Request</h2>
+          <p><strong>From:</strong> ${session.user.name} (${session.user.email})</p>
+          <p><strong>Subject:</strong> ${subject}</p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 16px 0;" />
+          <p>${message.replace(/\n/g, "<br/>")}</p>
+        </div>
       `,
-      replyTo: session.user.email,
     });
 
     return NextResponse.json({ success: true });
