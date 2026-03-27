@@ -12,6 +12,8 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const verified = searchParams.get("verified");
+  const error = searchParams.get("error");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,6 +64,21 @@ const LoginForm = () => {
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
+        {verified === "true" && (
+          <p className="text-sm text-success bg-success/10 border border-success/30 rounded-[12px] px-4 py-2">
+            ✅ Email verified! You can now log in.
+          </p>
+        )}
+        {error === "invalid-token" && (
+          <p className="text-sm text-error bg-error/10 border border-error/30 rounded-[12px] px-4 py-2">
+            Invalid or expired verification link. Please request a new one.
+          </p>
+        )}
+        {error === "token-expired" && (
+          <p className="text-sm text-error bg-error/10 border border-error/30 rounded-[12px] px-4 py-2">
+            Your verification link has expired. Please request a new one.
+          </p>
+        )}
         <div>
           <Label htmlFor="password" className="mt-6 mb-2">
             Password

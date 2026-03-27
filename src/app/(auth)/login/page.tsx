@@ -6,6 +6,7 @@ import LoginForm from "./LoginForm";
 import OauthButtons from "@/components/ui/oauth-buttons";
 
 export default function LoginPage() {
+  
   return (
     <div className="flex flex-col md:flex-row items-center justify-center gap-20">
       <Image

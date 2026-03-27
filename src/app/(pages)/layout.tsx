@@ -7,6 +7,7 @@ import Header from "@/components/header/Header";
 import { ThemeProvider } from "next-themes";
 import FloatingSidebar from "@/components/sidebar/floatingSidebar";
 import { useEffect, useState } from "react";
+import EmailVerificationBanner from "@/components/ui/EmailVerificationBanner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -31,8 +32,8 @@ export default function RootLayout({
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <div className="flex flex-row px-0 md:px-7.5 py-5 h-screen w-full gap-7.5 overflow-hidden">
         {isSm ? <FloatingSidebar /> : <Sidebar />}
-
         <div className="flex flex-col w-full min-w-0">
+          <EmailVerificationBanner />
           <Header />
           <div className="overflow-y-auto overflow-x-hidden scrollbar-hide pr-5 md:px-0">
             {children}

@@ -62,7 +62,7 @@ declare module "next-auth/jwt" {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as Adapter,
+  // adapter: PrismaAdapter(prisma) as Adapter,
   pages: {
     signIn: "/login",
   },
