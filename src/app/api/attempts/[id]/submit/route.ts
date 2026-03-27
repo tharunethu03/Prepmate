@@ -24,16 +24,69 @@ function scoreAnswer(
   };
 }
 
+async function scoreWithAI(
+  questionText: string,
+  idealAnswer: string,
+  userAnswer: string,
+): Promise<{ aiScore: number; feedback: string } | null> {
+  if (!userAnswer || userAnswer === "No answer" || userAnswer === "Did not know")
+    return null;
+
+  const prompt = `You are a strict but fair technical interviewer. Score this answer and give concise feedback.
+
+Question: "${questionText}"
+Ideal answer: "${idealAnswer}"
+Candidate's answer: "${userAnswer}"
+
+Return ONLY raw JSON (no markdown):
+{"aiScore": <number 0-100>, "feedback": "Strengths: <what they got right>. Missing: <what was lacking or absent>."}
+
+Score 0 if completely wrong/empty, 100 if perfect. Be accurate and specific in feedback.`;
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        max_tokens: 150,
+      }),
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const raw: string = data.choices?.[0]?.message?.content ?? "";
+    const cleaned = raw.replace(/```json|```/g, "").trim();
+
+    let parsed: { aiScore: number; feedback: string };
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch {
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if (!match) return null;
+      parsed = JSON.parse(match[0]);
+    }
+
+    if (typeof parsed.aiScore !== "number") return null;
+    parsed.aiScore = Math.max(0, Math.min(100, Math.round(parsed.aiScore)));
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 function calculateXp(score: number): number {
   if (score >= 90) return 150;
   if (score >= 75) return 120;
   if (score >= 50) return 100;
   if (score >= 25) return 60;
   return 30;
-}
-
-function calculateLevel(xp: number): number {
-  return Math.floor(Math.sqrt(xp / 100)) + 1;
 }
 
 export async function POST(
@@ -69,7 +122,8 @@ export async function POST(
     attempt.interview.questions.map((q) => [q.id, q]),
   );
 
-  const scoredResponses = responses
+  // Step 1: keyword scoring (fast, synchronous)
+  const keywordScored = responses
     .map((r) => {
       const question = questionMap.get(r.questionId);
       if (!question) return null;
@@ -82,7 +136,8 @@ export async function POST(
         questionId: r.questionId,
         userAnswer: r.userAnswer,
         matchedKeywords,
-        questionScore,
+        keywordScore: questionScore,
+        question,
       };
     })
     .filter(Boolean) as {
@@ -90,8 +145,32 @@ export async function POST(
     questionId: string;
     userAnswer: string;
     matchedKeywords: string[];
-    questionScore: number;
+    keywordScore: number;
+    question: (typeof attempt.interview.questions)[0];
   }[];
+
+  // Step 2: AI semantic scoring (parallel, graceful fallback)
+  const aiResults = await Promise.all(
+    keywordScored.map((r) =>
+      scoreWithAI(r.question.question, r.question.answer, r.userAnswer),
+    ),
+  );
+
+  // Step 3: composite score (60% AI + 40% keyword when AI available)
+  const scoredResponses = keywordScored.map((r, i) => {
+    const ai = aiResults[i];
+    const finalScore = ai
+      ? Math.round(r.keywordScore * 0.4 + ai.aiScore * 0.6)
+      : r.keywordScore;
+    return {
+      attemptId: r.attemptId,
+      questionId: r.questionId,
+      userAnswer: r.userAnswer,
+      matchedKeywords: r.matchedKeywords,
+      questionScore: finalScore,
+      aiFeedback: ai?.feedback ?? null,
+    };
+  });
 
   const overallScore =
     scoredResponses.reduce((sum, r) => sum + r.questionScore, 0) /
@@ -147,11 +226,10 @@ export async function POST(
 
   await checkAndAwardBadges(session.user.id);
 
-  // Get newly earned badges to show in UI
   const userBadges = await prisma.userBadge.findMany({
     where: {
       userId: session.user.id,
-      earnedAt: { gte: new Date(Date.now() - 10000) }, // earned in last 10 seconds
+      earnedAt: { gte: new Date(Date.now() - 10000) },
     },
     include: {
       badge: {
@@ -174,18 +252,23 @@ export async function POST(
     xpReward: ub.badge.xpReward,
   }));
 
-  return NextResponse.json({
-    attemptId: updatedAttempt.id,
-    score: overallScore,
-    xpEarned,
-    responses: scoredResponses,
-    newBadges, // add this
+  // Per-question breakdown for the results page
+  const questionBreakdown = scoredResponses.map((r) => {
+    const q = questionMap.get(r.questionId);
+    return {
+      questionId: r.questionId,
+      questionText: q?.question ?? "",
+      userAnswer: r.userAnswer,
+      questionScore: r.questionScore,
+      aiFeedback: r.aiFeedback,
+    };
   });
 
   return NextResponse.json({
     attemptId: updatedAttempt.id,
     score: overallScore,
     xpEarned,
-    responses: scoredResponses,
+    questionBreakdown,
+    newBadges,
   });
 }

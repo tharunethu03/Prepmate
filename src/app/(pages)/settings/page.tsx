@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { LoaderOne } from "@/components/ui/loader";
 import EditProfileModal from "./EditProfileModal";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 type PrivacySettings = {
   showXp: boolean;
@@ -22,6 +23,7 @@ const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -63,19 +65,15 @@ const SettingsPage = () => {
       <div>
         <h3 className="mb-3">Profile & Account</h3>
         <div className="flex flex-col gap-2">
-          {[
-            // { label: "Edit profile", href: "/profile?edit=true" },
-            { label: "Change password" },
-            { label: "Request creator account" },
-          ].map((item) => (
-            <button
-              key={item.label}
-              // onClick={() => item.href && (window.location.href = item.href)}
-              className="w-full border border-border hover:border-accent text-start px-5 py-2.5 rounded-[12px] text-secondary hover:text-primary transition-colors"
-            >
-              {item.label}
-            </button>
-          ))}
+          <button
+            onClick={() => setShowChangePassword(true)}
+            className="w-full border border-border hover:border-accent text-start px-5 py-2.5 rounded-[12px] text-secondary hover:text-primary transition-colors"
+          >
+            Change password
+          </button>
+          <button className="w-full border border-border hover:border-accent text-start px-5 py-2.5 rounded-[12px] text-secondary hover:text-primary transition-colors">
+            Request creator account
+          </button>
           <button
             onClick={() => setShowEditProfile(true)}
             className="w-full border border-border hover:border-accent text-start px-5 py-2.5 rounded-[12px] text-secondary hover:text-primary transition-colors"
@@ -138,6 +136,9 @@ const SettingsPage = () => {
       </div>
       {showEditProfile && (
         <EditProfileModal onClose={() => setShowEditProfile(false)} />
+      )}
+      {showChangePassword && (
+        <ChangePasswordModal onClose={() => setShowChangePassword(false)} />
       )}
     </div>
   );

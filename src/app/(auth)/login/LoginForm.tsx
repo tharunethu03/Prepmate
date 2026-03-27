@@ -15,6 +15,11 @@ const LoginForm = () => {
   const verified = searchParams.get("verified");
   const error = searchParams.get("error");
 
+  // Forgot password state
+  const [mode, setMode] = useState<"login" | "forgot">("login");
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotStatus, setForgotStatus] = useState<"idle" | "loading" | "sent">("idle");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -39,9 +44,9 @@ const LoginForm = () => {
       }
 
       if (!session.user.profileCompleted) {
-        router.push("/profile-setup"); // Redirect new users to complete profile setup
+        router.push("/profile-setup");
       } else {
-        router.push(callbackUrl); // Otherwise go to callbackUrl (dashboard)
+        router.push(callbackUrl);
       }
     } catch (error) {
       toast.error("Something went wrong");
@@ -49,6 +54,82 @@ const LoginForm = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotStatus("loading");
+    try {
+      await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      setForgotStatus("sent");
+    } catch {
+      toast.error("Something went wrong");
+      setForgotStatus("idle");
+    }
+  };
+
+  // ── Forgot password view ──────────────────────────────────────────
+  if (mode === "forgot") {
+    return (
+      <div>
+        {forgotStatus === "sent" ? (
+          <div className="mt-6 text-center flex flex-col gap-4">
+            <p className="text-4xl">📬</p>
+            <p className="text-sm text-secondary">
+              If <span className="text-primary font-medium">{forgotEmail}</span> is
+              registered, a password reset link has been sent. Check your inbox.
+            </p>
+            <button
+              onClick={() => {
+                setMode("login");
+                setForgotEmail("");
+                setForgotStatus("idle");
+              }}
+              className="text-xs text-accent hover:underline"
+            >
+              Back to login
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleForgotPassword}>
+            <p className="text-sm text-secondary mt-2 mb-6">
+              Enter your email and we&apos;ll send you a link to reset your password.
+            </p>
+            <div>
+              <Label className="mb-2">Email</Label>
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                required
+              />
+            </div>
+            <Button
+              type="submit"
+              className="mt-6 w-full"
+              disabled={forgotStatus === "loading"}
+            >
+              {forgotStatus === "loading" ? "Sending…" : "Send reset link"}
+            </Button>
+            <div className="flex justify-center mt-4">
+              <button
+                type="button"
+                onClick={() => setMode("login")}
+                className="text-xs text-tertiary hover:text-accent"
+              >
+                Back to login
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    );
+  }
+
+  // ── Login view ────────────────────────────────────────────────────
   return (
     <div>
       <form action="" onSubmit={handleSubmit}>
@@ -90,9 +171,13 @@ const LoginForm = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
           <div className="flex justify-end mt-2">
-            <a href="" className="text-xs text-tertiary hover:text-accent">
+            <button
+              type="button"
+              onClick={() => setMode("forgot")}
+              className="text-xs text-tertiary hover:text-accent"
+            >
               Forgot Password?
-            </a>
+            </button>
           </div>
         </div>
         <Button className="mt-8 w-full" type="submit">

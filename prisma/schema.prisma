@@ -77,6 +77,10 @@ model User {
   // Auto-login after email verification
   autoLoginToken        String?
   autoLoginTokenExpires DateTime?
+
+  // Password reset
+  passwordResetToken        String?
+  passwordResetTokenExpires DateTime?
 }
 
 // ─────────────────────────────────────────────
@@ -187,6 +191,7 @@ model QuestionResponse {
   userAnswer      String // raw text the user typed
   matchedKeywords String[] // subset of Question.keywords found in answer
   questionScore   Float // 0-100 for this specific question
+  aiFeedback      String? // LLM-generated feedback e.g. "Strengths: X. Missing: Y."
 
   attempt  InterviewAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   question Question         @relation(fields: [questionId], references: [id])
