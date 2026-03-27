@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
@@ -31,8 +31,7 @@ const LoginForm = () => {
       }
 
       // Fetch the session after successful sign-in
-      const sessionRes = await fetch("/api/auth/session");
-      const session = await sessionRes.json();
+      const session = await getSession();
 
       if (!session?.user) {
         toast.error("Session not found");
