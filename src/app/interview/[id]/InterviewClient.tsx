@@ -50,6 +50,7 @@ type Phase = "answering" | "confirming";
 type QuestionBreakdown = {
   questionId: string;
   questionText: string;
+  idealAnswer: string;
   userAnswer: string;
   questionScore: number;
   aiFeedback: string | null;
@@ -196,16 +197,11 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
       });
 
       if (!res.ok) {
-        // Fallback to browser TTS if ElevenLabs fails
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "en-US";
-        utterance.rate = 0.95;
-        utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => {
-          setIsSpeaking(false);
-          onDone?.();
-        };
-        window.speechSynthesis.speak(utterance);
+        const errText = await res.text();
+        console.error("ElevenLabs TTS failed:", res.status, errText);
+        toast.error(`Voice error (${res.status}) — using fallback`);
+        setIsSpeaking(false);
+        onDone?.();
         return;
       }
 
@@ -220,15 +216,24 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
         URL.revokeObjectURL(url);
         onDone?.();
       };
-      audio.onerror = () => {
+      audio.onerror = (e) => {
+        console.error("Audio playback error:", e);
         setIsSpeaking(false);
         audioRef.current = null;
         URL.revokeObjectURL(url);
         onDone?.();
       };
 
-      await audio.play();
-    } catch {
+      // Handle autoplay policy rejections
+      audio.play().catch((e) => {
+        console.error("audio.play() blocked:", e);
+        setIsSpeaking(false);
+        audioRef.current = null;
+        URL.revokeObjectURL(url);
+        onDone?.();
+      });
+    } catch (e) {
+      console.error("speak() error:", e);
       setIsSpeaking(false);
       onDone?.();
     }
@@ -249,6 +254,8 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
     recognition.lang = "en-US";
 
     recognition.onresult = (event) => {
+      // Stale session guard — ignore events from a replaced or stopped session
+      if (recognitionRef.current !== recognition) return;
       let transcript = "";
       for (let i = 0; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript;
@@ -257,6 +264,7 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
     };
 
     recognition.onerror = (event: Event) => {
+      if (recognitionRef.current !== recognition) return;
       const err = (event as Event & { error: string }).error;
       if (err === "no-speech" || err === "aborted") return;
       if (err === "not-allowed") {
@@ -268,13 +276,13 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
     };
 
     recognition.onend = () => {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.start();
-        } catch {
-          setIsListening(false);
-        }
-      } else {
+      // Stale session guard — don't restart an old session
+      if (recognitionRef.current !== recognition) return;
+      try {
+        // Restart this same instance to keep continuous listening
+        recognition.start();
+      } catch {
+        recognitionRef.current = null;
         setIsListening(false);
       }
     };
@@ -630,13 +638,6 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
           ? "text-warning"
           : "text-error";
 
-    const formulaParts = breakdown
-      .map((q, i) => `Q${i + 1}: ${Math.round(q.questionScore)}%`)
-      .join(" + ");
-    const formulaStr =
-      total > 0
-        ? `(${formulaParts}) ÷ ${total} = ${Math.round(result.score)}%`
-        : `${Math.round(result.score)}%`;
 
     return (
       <div className="min-h-screen p-6 md:p-10 flex flex-col items-center">
@@ -657,13 +658,48 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
 
             {/* Score calculation */}
             {total > 0 && (
-              <div className="w-full mt-2 bg-background border border-border rounded-[12px] px-5 py-3 text-left">
-                <p className="text-xs text-tertiary mb-1 font-medium uppercase tracking-wide">
+              <div className="w-full mt-2 bg-background border border-border rounded-[12px] px-4 py-4 text-left">
+                <p className="text-xs text-tertiary mb-3 font-medium uppercase tracking-widest">
                   How your score was calculated
                 </p>
-                <p className="text-sm text-secondary font-mono break-words">
-                  {formulaStr}
-                </p>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+                  {breakdown.map((q, i) => {
+                    const qScore = Math.round(q.questionScore);
+                    const chipStyle =
+                      qScore >= 75
+                        ? "bg-success/10 text-success border-success/30"
+                        : qScore >= 50
+                          ? "bg-warning/10 text-warning border-warning/30"
+                          : "bg-error/10 text-error border-error/30";
+                    return (
+                      <span
+                        key={q.questionId}
+                        className="flex items-center gap-2"
+                      >
+                        <span
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border text-xs font-semibold ${chipStyle}`}
+                        >
+                          <span className="text-tertiary font-normal">
+                            Q{i + 1}
+                          </span>
+                          {qScore}%
+                        </span>
+                        {i < total - 1 && (
+                          <span className="text-tertiary text-sm select-none">
+                            +
+                          </span>
+                        )}
+                      </span>
+                    );
+                  })}
+                  <span className="text-tertiary text-sm select-none mx-0.5">
+                    ÷ {total}
+                  </span>
+                  <span className="text-tertiary text-sm select-none">=</span>
+                  <span className={`text-xl font-bold ${scoreColor}`}>
+                    {Math.round(result.score)}%
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -741,6 +777,18 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
                       )}
                     </div>
 
+                    {/* Ideal answer */}
+                    {q.idealAnswer && (
+                      <div className="bg-success/5 border border-success/20 rounded-[10px] px-4 py-3">
+                        <p className="text-xs text-success font-medium mb-1">
+                          ✦ Ideal answer
+                        </p>
+                        <p className="text-sm text-secondary leading-relaxed">
+                          {q.idealAnswer}
+                        </p>
+                      </div>
+                    )}
+
                     {/* AI feedback */}
                     {q.aiFeedback && (
                       <div className="flex flex-col gap-1.5">
@@ -794,13 +842,17 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
   }
 
   return (
-    <div className="flex flex-col h-screen gap-5 p-5">
-      {/* Header */}
-      <div className="flex items-center justify-between w-full px-5 py-5 rounded-[22px] border border-border">
-        <div>
-          <h2>{interview.title}</h2>
-          <div className="flex gap-2 mt-3">
-            <div className="flex bg-accent w-fit px-3 py-2 rounded-[12px] gap-1 items-center">
+    <div className="flex flex-col h-dvh gap-3 sm:gap-5 p-3 sm:p-5">
+
+      {/* ── Header ─────────────────────────────────────────────── */}
+      <div className="flex items-start sm:items-center justify-between w-full px-4 sm:px-5 py-3 sm:py-5 rounded-[22px] border border-border gap-3 shrink-0">
+        {/* Title + badges */}
+        <div className="min-w-0">
+          <h2 className="text-sm sm:text-base font-semibold truncate">
+            {interview.title}
+          </h2>
+          <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex bg-accent w-fit px-3 py-1.5 rounded-[12px] gap-1 items-center">
               <span className="text-foreground font-bold text-xs">
                 {interview.role}
               </span>
@@ -819,45 +871,53 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => setTextMode((prev) => !prev)}
-            className="flex items-center gap-2 text-xs text-secondary border border-border rounded-[11px] px-3 py-1.5 hover:text-accent"
+            className="flex items-center gap-1.5 text-xs text-secondary border border-border rounded-[11px] px-2.5 py-1.5 hover:text-accent transition-colors"
           >
-            <Keyboard size={14} />
-            {textMode ? "Switch to Voice" : "Switch to Text"}
+            <Keyboard size={13} />
+            <span className="hidden sm:inline">
+              {textMode ? "Switch to Voice" : "Switch to Text"}
+            </span>
           </button>
           {!interviewStarted ? (
             <Button
               onClick={handleStart}
-              className="bg-success hover:bg-success/90 px-6 text-white"
+              className="bg-success hover:bg-success/90 text-white px-3 sm:px-6 text-xs sm:text-sm"
             >
-              Start Interview
+              <span className="sm:hidden">Start</span>
+              <span className="hidden sm:inline">Start Interview</span>
             </Button>
           ) : (
             <Button
               onClick={() => setShowExitModal(true)}
-              className="bg-error hover:bg-error/90 px-6 text-white"
+              className="bg-error hover:bg-error/90 text-white px-3 sm:px-6 text-xs sm:text-sm"
             >
-              End Interview
+              <span className="sm:hidden">End</span>
+              <span className="hidden sm:inline">End Interview</span>
             </Button>
           )}
         </div>
       </div>
 
-      <div className="flex h-dvh w-full gap-5">
-        {/* Agent + Camera */}
-        <div className="flex flex-col flex-1 rounded-[22px]">
-          <div className="border border-border flex-1 min-h-[50px] rounded-t-[22px]">
+      {/* ── Main body ──────────────────────────────────────────── */}
+      <div className="flex flex-col md:flex-row flex-1 min-h-0 w-full gap-3 sm:gap-5">
+
+        {/* Agent + Camera — row on mobile, column on desktop */}
+        <div className="flex flex-row md:flex-col gap-3 h-36 sm:h-44 md:h-auto md:flex-1 shrink-0">
+          <div className="border border-border flex-1 min-h-0 rounded-[18px] overflow-hidden">
             <Agent isSpeaking={isSpeaking} />
           </div>
-          <div className="border border-border flex-1 min-h-[50px] rounded-b-[22px]">
+          <div className="border border-border flex-1 min-h-0 rounded-[18px] overflow-hidden">
             <CameraComponent isUserSpeaking={isListening} />
           </div>
         </div>
 
         {/* Conversation panel */}
-        <div className="border border-border flex-1 min-h-[50px] rounded-[22px] p-5 flex flex-col gap-4 overflow-y-auto">
+        <div className="border border-border flex-1 min-h-0 rounded-[22px] p-4 sm:p-5 flex flex-col gap-3 sm:gap-4 overflow-y-auto">
           {!interviewStarted ? (
             <div className="flex flex-col items-center justify-center h-full gap-4 text-secondary">
               <p className="text-sm text-center max-w-xs">
@@ -872,7 +932,7 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
           ) : (
             <>
               {/* Progress */}
-              <div className="flex items-center justify-between text-xs text-secondary">
+              <div className="flex items-center justify-between text-xs text-secondary shrink-0">
                 <span>
                   Question {currentIndex + 1} of {interview.questions.length}
                 </span>
@@ -880,7 +940,7 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
                   {interview.questions.map((_, i) => (
                     <div
                       key={i}
-                      className={`h-1.5 w-6 rounded-full ${
+                      className={`h-1.5 w-5 sm:w-6 rounded-full ${
                         i < currentIndex
                           ? "bg-accent"
                           : i === currentIndex
@@ -894,7 +954,7 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
 
               {/* AI message bubble */}
               {aiMessage && (
-                <div className="w-fit max-w-[85%] bg-accent text-foreground px-5 py-3 rounded-b-[12px] rounded-tr-[12px] shadow-lg text-sm">
+                <div className="w-fit max-w-[92%] sm:max-w-[85%] bg-accent text-foreground px-4 sm:px-5 py-3 rounded-b-[12px] rounded-tr-[12px] shadow-lg text-sm shrink-0">
                   {aiThinking ? (
                     <span className="flex gap-1 items-center text-xs">
                       <span className="animate-bounce">●</span>
@@ -913,26 +973,26 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
 
               {/* Think time UI */}
               {thinkingDown !== null && (
-                <div className="flex items-center justify-between bg-background border border-border rounded-[12px] px-4 py-3">
+                <div className="flex items-center justify-between bg-background border border-border rounded-[12px] px-4 py-3 shrink-0">
                   <span className="text-sm text-secondary">
                     🤔 Take your time...
                   </span>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <span className="text-sm font-mono font-bold text-accent">
                       {thinkingDown}s
                     </span>
                     <button
                       onClick={handleReadyToAnswer}
-                      className="text-xs text-accent border border-accent rounded-[8px] px-3 py-1 hover:bg-accent hover:text-foreground transition-colors"
+                      className="text-xs text-accent border border-accent rounded-[8px] px-2.5 sm:px-3 py-1 hover:bg-accent hover:text-foreground transition-colors"
                     >
-                      Ready to answer
+                      Ready
                     </button>
                   </div>
                 </div>
               )}
 
               {/* Answer area */}
-              <div className="flex flex-col gap-2 mt-auto">
+              <div className="flex flex-col gap-2 mt-auto shrink-0">
                 <Textarea
                   placeholder={
                     thinkingDown !== null
@@ -954,14 +1014,14 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
                     textMode ? updateCurrentAnswer(e.target.value) : undefined
                   }
                   readOnly={!textMode || thinkingDown !== null}
-                  className={`min-h-32 resize-none ${isListening ? "border-accent" : ""}`}
+                  className={`min-h-24 sm:min-h-32 resize-none ${isListening ? "border-accent" : ""}`}
                 />
 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   {/* Status indicator */}
                   {!textMode && (
                     <div
-                      className={`flex items-center gap-2 px-4 py-2 rounded-[11px] text-sm font-medium ${
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[11px] text-xs font-medium ${
                         isListening
                           ? "bg-error/10 text-error border border-error"
                           : isSpeaking
@@ -971,33 +1031,33 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
                     >
                       {isListening ? (
                         <>
-                          <Mic size={16} className="animate-pulse" /> Listening
+                          <Mic size={13} className="animate-pulse" /> Listening
                         </>
                       ) : isSpeaking ? (
                         <>
-                          <MicOff size={16} /> Alex is speaking
+                          <MicOff size={13} /> Alex is speaking
                         </>
                       ) : (
                         <>
-                          <MicOff size={16} /> Waiting
+                          <MicOff size={13} /> Waiting
                         </>
                       )}
                     </div>
                   )}
 
                   <div className="ml-auto flex gap-2">
-                    {/* Interrupt button — shown while Alex is speaking */}
+                    {/* Interrupt */}
                     {!textMode && isSpeaking && (
                       <Button
                         variant="outline"
                         onClick={handleInterrupt}
-                        className="text-xs gap-1.5"
+                        className="text-xs gap-1.5 h-8 sm:h-9 px-2.5 sm:px-3"
                       >
-                        <Mic size={14} /> Interrupt
+                        <Mic size={13} /> Interrupt
                       </Button>
                     )}
 
-                    {/* Think time button — shown while listening on answering phase */}
+                    {/* Think time */}
                     {!textMode &&
                       isListening &&
                       phase === "answering" &&
@@ -1005,9 +1065,9 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
                         <Button
                           variant="outline"
                           onClick={handleThinkTime}
-                          className="text-xs gap-1.5"
+                          className="text-xs gap-1.5 h-8 sm:h-9 px-2.5 sm:px-3"
                         >
-                          <Clock size={14} /> Think
+                          <Clock size={13} /> Think
                         </Button>
                       )}
 
@@ -1018,16 +1078,17 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
                         disabled={
                           !currentAnswer.trim() || aiThinking || submitting
                         }
+                        className="text-xs h-8 sm:h-9 px-3"
                       >
                         {submitting
                           ? "Submitting..."
                           : phase === "confirming"
                             ? "Confirm →"
-                            : "Send Answer →"}
+                            : "Send →"}
                       </Button>
                     )}
 
-                    {/* Voice mode done button */}
+                    {/* Voice done */}
                     {!textMode &&
                       currentAnswer.trim() &&
                       !isSpeaking &&
@@ -1038,7 +1099,7 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
                           variant={
                             phase === "confirming" ? "default" : "outline"
                           }
-                          className="text-xs"
+                          className="text-xs h-8 sm:h-9 px-2.5 sm:px-3"
                         >
                           {submitting
                             ? "Submitting..."
@@ -1053,7 +1114,7 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
 
               {/* Answered list */}
               {responses.length > 0 && (
-                <div className="flex flex-col gap-1 border-t border-border pt-3">
+                <div className="flex flex-col gap-1 border-t border-border pt-3 shrink-0">
                   <p className="text-xs text-tertiary">Answered</p>
                   {responses.map((r, i) => (
                     <div key={i} className="text-xs text-secondary flex gap-2">
@@ -1070,26 +1131,26 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
         </div>
       </div>
 
-      {/* Exit modal */}
+      {/* ── Exit modal ─────────────────────────────────────────── */}
       {showExitModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-100">
-          <div className="bg-foreground border border-accent rounded-[22px] shadow-lg px-10 py-5">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-100 p-4">
+          <div className="bg-foreground border border-accent rounded-[22px] shadow-lg px-6 sm:px-10 py-6 w-full max-w-sm">
             <div className="flex flex-col items-center justify-center">
               <h3 className="mb-3">Leaving so soon?</h3>
               <p className="sub-text mb-5 max-w-xs text-center">
                 If you leave now your progress won&apos;t be saved.
               </p>
-              <div className="flex flex-col gap-3 w-full px-10">
+              <div className="flex flex-col gap-3 w-full">
                 <Button
                   variant="default"
-                  className="px-6 w-full"
+                  className="w-full"
                   onClick={() => setShowExitModal(false)}
                 >
                   Continue Interview
                 </Button>
                 <Button
                   variant="outline"
-                  className="hover:bg-error px-6 hover:text-white w-full hover:border-error"
+                  className="hover:bg-error hover:text-white w-full hover:border-error"
                   onClick={handleExitConfirm}
                 >
                   End Anyway

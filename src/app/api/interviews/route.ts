@@ -22,6 +22,7 @@ type CreateInterviewBody = {
   mode: "ai" | "custom";
   visibility: "public" | "private";
   questions: CreateInterviewQuestion[];
+  creatorField?: string | null;
 };
 
 export async function POST(req: Request) {
@@ -42,6 +43,7 @@ export async function POST(req: Request) {
       mode,
       visibility,
       questions,
+      creatorField,
     } = body;
 
     if (
@@ -82,7 +84,7 @@ export async function POST(req: Request) {
         visibility,
         questionCount: questions.length,
         createdBy: session.user.id,
-        creatorField: session.user.field ?? null,
+        creatorField: creatorField ?? session.user.field ?? null,
         questions: {
           create: questions.map((q, index) => ({
             order: index,

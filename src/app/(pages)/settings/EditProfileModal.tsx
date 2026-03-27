@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { avatars } from "@/data/avatars";
+import { INDUSTRY_NAMES, INDUSTRIES } from "@/data/industries";
 import { Input } from "@/components/ui/input";
 import { Dropdown } from "@/components/ui/dropdown";
 import { Label } from "@/components/ui/label";
@@ -146,7 +147,7 @@ export default function EditProfileModal({ onClose }: EditProfileModalProps) {
               </Label>
               <Dropdown
                 className="mt-2"
-                options={["Information Technology"]}
+                options={INDUSTRY_NAMES}
                 placeholder="Select your field"
                 onChange={(value) => setField(value)}
                 // value={field}
@@ -160,16 +161,7 @@ export default function EditProfileModal({ onClose }: EditProfileModalProps) {
               <Dropdown
                 className="mt-2"
                 options={
-                  !field
-                    ? []
-                    : [
-                        "Frontend Engineer",
-                        "Backend Engineer",
-                        "Fullstack Engineer",
-                        "Mobile Developer",
-                        "DevOps Engineer",
-                        "QA Engineer",
-                      ]
+                  !field ? [] : (INDUSTRIES[field] ?? [])
                 }
                 placeholder={!field ? "Select field first" : "Select your role"}
                 onChange={(value) => setRoleTitle(value)}

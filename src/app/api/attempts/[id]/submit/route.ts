@@ -258,6 +258,7 @@ export async function POST(
     return {
       questionId: r.questionId,
       questionText: q?.question ?? "",
+      idealAnswer: q?.answer ?? "",
       userAnswer: r.userAnswer,
       questionScore: r.questionScore,
       aiFeedback: r.aiFeedback,

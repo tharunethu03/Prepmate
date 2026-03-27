@@ -1,16 +1,15 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "./api/auth/[...nextauth]/route";
+import LandingPage from "./landing/LandingPage";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
-  if (!session) {
-    redirect("/login");
+
+  if (session) {
+    if (session.user.onboardingCompleted) redirect("/dashboard");
+    else redirect("/profile-setup");
   }
 
-  if (session.user.onboardingCompleted) {
-    redirect("/dashboard");
-  }
-
-  redirect("/profile-setup");
+  return <LandingPage />;
 }

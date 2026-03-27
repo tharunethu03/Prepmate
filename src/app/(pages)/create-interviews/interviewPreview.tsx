@@ -29,11 +29,12 @@ type InterviewPreviewData = {
   description: string;
   topics: string[];
   difficulty: "beginner" | "intermediate" | "advanced";
-  interviewType: "technical" | "behavioral" | "hr" | "mixed"; // add this
+  interviewType: "technical" | "behavioral" | "hr" | "mixed";
   numberOfQuestion: number;
   mode: "ai" | "custom";
   visibility: "public" | "private";
   questions: Question[];
+  creatorField?: string | null;
 };
 
 type InterviewPreviewProps = {
@@ -93,6 +94,7 @@ export default function InterviewPreview({
           mode: data.mode,
           visibility: data.visibility,
           questions,
+          creatorField: data.creatorField ?? null,
         }),
       });
 

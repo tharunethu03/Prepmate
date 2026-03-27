@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { avatars } from "@/data/avatars";
+import { INDUSTRY_NAMES, INDUSTRIES } from "@/data/industries";
 import { Input } from "@/components/ui/input";
 import { Dropdown } from "@/components/ui/dropdown";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -164,7 +165,7 @@ const ProfileForm = () => {
 
               <Dropdown
                 className="mt-2"
-                options={["Information Technology"]}
+                options={INDUSTRY_NAMES}
                 placeholder="Select your field"
                 onChange={(value) => setField(value)}
               />
@@ -178,18 +179,7 @@ const ProfileForm = () => {
 
               <Dropdown
                 className="mt-2"
-                options={
-                  !field
-                    ? []
-                    : [
-                        "Frontend Engineer",
-                        "Backend Engineer",
-                        "Fullstack Engineer",
-                        "Mobile Developer",
-                        "DevOps Engineer",
-                        "QA Engineer",
-                      ]
-                }
+                options={!field ? [] : (INDUSTRIES[field] ?? [])}
                 placeholder={
                   !field ? "Select field first" : "Select your role title"
                 }

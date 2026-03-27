@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { RoleDropdown } from "@/components/ui/role-dropdown";
 import { nanoid } from "nanoid";
 import { RadioGroup } from "@radix-ui/react-radio-group";
 import { RadioGroupItem } from "@/components/ui/radio-group";
@@ -41,6 +42,7 @@ export default function InterviewForm({
 }: InterviewFormProps) {
   const [title, setTitle] = useState("");
   const [role, setRole] = useState("");
+  const [roleIndustry, setRoleIndustry] = useState("");
   const [description, setDescription] = useState("");
   const [topics, setTopics] = useState<string[]>([]);
   const [value, setValue] = useState("");
@@ -280,18 +282,14 @@ export default function InterviewForm({
                 <Label>
                   Category / Role <span className="text-error">*</span>
                 </Label>
-                <Dropdown
-                  className="mt-2 h-10 w-full"
-                  options={[
-                    "Frontend Engineer",
-                    "Backend Engineer",
-                    "Fullstack Engineer",
-                    "Mobile Developer",
-                    "DevOps Engineer",
-                    "QA Engineer",
-                  ]}
-                  placeholder="Choose the category"
-                  onChange={(value) => setRole(value)}
+                <RoleDropdown
+                  userIndustry={session?.user?.field}
+                  placeholder="Choose the role"
+                  value={role}
+                  onChange={(r, industry) => {
+                    setRole(r);
+                    setRoleIndustry(industry);
+                  }}
                 />
               </div>
             </div>
@@ -769,6 +767,7 @@ export default function InterviewForm({
             questions,
             mode,
             visibility,
+            creatorField: roleIndustry || session?.user?.field || null,
           }}
         />
       )}

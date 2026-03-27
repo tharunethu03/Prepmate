@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         text,
-        model_id: "eleven_turbo_v2_5", // lowest latency model
+        model_id: "eleven_multilingual_v2", // available on all plans
         voice_settings: {
           stability: 0.5,
           similarity_boost: 0.75,
