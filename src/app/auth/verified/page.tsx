@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
-export default function VerifiedPage() {
+function VerifiedContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const called = useRef(false);
@@ -41,5 +41,25 @@ export default function VerifiedPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function VerifiedPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+            <div className="text-4xl mb-4">✉️</div>
+            <p className="text-lg font-medium">Verifying your email…</p>
+            <p className="text-secondary text-sm mt-2">
+              You&apos;ll be redirected shortly.
+            </p>
+          </div>
+        </div>
+      }
+    >
+      <VerifiedContent />
+    </Suspense>
   );
 }
