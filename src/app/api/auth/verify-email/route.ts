@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -10,31 +11,39 @@ export async function GET(req: Request) {
       new URL("/login?error=invalid-token", req.url),
     );
 
-  const verificationToken = await prisma.verificationToken.findUnique({
+  const pending = await prisma.pendingRegistration.findUnique({
     where: { token },
-    include: { user: true },
   });
 
-  if (!verificationToken)
+  if (!pending)
     return NextResponse.redirect(
       new URL("/login?error=invalid-token", req.url),
     );
 
-  if (verificationToken.expires < new Date())
+  if (pending.expires < new Date())
     return NextResponse.redirect(
       new URL("/login?error=token-expired", req.url),
     );
 
-  // Mark email as verified
-  await prisma.user.update({
-    where: { id: verificationToken.userId },
-    data: { emailVerified: new Date() },
+  // Create the real user now that email is verified
+  const autoLoginToken = crypto.randomBytes(32).toString("hex");
+  const autoLoginTokenExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+  await prisma.user.create({
+    data: {
+      email: pending.email,
+      password: pending.hashedPassword,
+      emailVerified: new Date(),
+      autoLoginToken,
+      autoLoginTokenExpires,
+    },
   });
 
-  // Delete the token
-  await prisma.verificationToken.delete({
-    where: { token },
-  });
+  // Clean up pending record
+  await prisma.pendingRegistration.delete({ where: { token } });
 
-  return NextResponse.redirect(new URL("/login?verified=true", req.url));
+  // Redirect to auto-login page
+  return NextResponse.redirect(
+    new URL(`/auth/verified?token=${autoLoginToken}`, req.url),
+  );
 }

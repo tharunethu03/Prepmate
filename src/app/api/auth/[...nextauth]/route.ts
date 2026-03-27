@@ -91,8 +91,47 @@ export const authOptions: NextAuthOptions = {
           type: "password",
           placeholder: "Enter your password",
         },
+        autoLoginToken: {
+          label: "Auto Login Token",
+          type: "text",
+        },
       },
       async authorize(credentials) {
+        // Post-verification auto-login via one-time token
+        if (credentials?.autoLoginToken) {
+          const user = await prisma.user.findFirst({
+            where: { autoLoginToken: credentials.autoLoginToken },
+          });
+          if (
+            !user ||
+            !user.autoLoginTokenExpires ||
+            user.autoLoginTokenExpires < new Date()
+          )
+            return null;
+
+          // Consume the token so it can't be reused
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { autoLoginToken: null, autoLoginTokenExpires: null },
+          });
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            avatar: user.avatar,
+            profileCompleted: user.profileCompleted,
+            onboardingCompleted: user.onboardingCompleted,
+            roleTitle: user.roleTitle,
+            field: user.field,
+            creatorRequest: user.creatorRequest,
+            portfolioLink: user.portfolioLink,
+            linkedinLink: user.linkedinLink,
+            githubLink: user.githubLink,
+          };
+        }
+
         if (!credentials?.email || !credentials.password) return null;
 
         const user = await prisma.user.findUnique({
@@ -132,13 +171,27 @@ export const authOptions: NextAuthOptions = {
           where: { email: user.email! },
         });
 
-        // Redirect if profile not completed
-        if (existingUser && !existingUser.profileCompleted) {
-          return "/profile-setup";
+        if (!existingUser) {
+          // First-time OAuth sign-in — create the User record now
+          const newUser = await prisma.user.create({
+            data: {
+              email: user.email!,
+              name: user.name ?? null,
+              image: user.image ?? null,
+              emailVerified: new Date(),
+            },
+          });
+          user.id = newUser.id;
+        } else {
+          // Always overwrite the provider id with the real DB id
+          user.id = existingUser.id;
+          if (!existingUser.profileCompleted) {
+            return "/profile-setup";
+          }
         }
       }
 
-      return true; // allow login
+      return true;
     },
     // JWT token contains all info needed for session
     async jwt({ token, user, trigger, session }) {
