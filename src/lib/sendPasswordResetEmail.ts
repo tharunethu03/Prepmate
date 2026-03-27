@@ -1,8 +1,6 @@
 import prisma from "./prisma";
-import { Resend } from "resend";
+import transporter from "./mailer";
 import crypto from "crypto";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 function maskEmail(email: string): string {
   const [user, domain] = email.split("@");
@@ -29,8 +27,8 @@ export async function sendPasswordResetEmail(
 
   const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
 
-  await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL!,
+  await transporter.sendMail({
+    from: `"Prepmate" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Reset your Prepmate password",
     html: `

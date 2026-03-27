@@ -1,8 +1,6 @@
 import prisma from "./prisma";
-import { Resend } from "resend";
+import transporter from "./mailer";
 import crypto from "crypto";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendVerificationEmail(
   userId: string,
@@ -21,8 +19,8 @@ export async function sendVerificationEmail(
 
   const verifyUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${token}`;
 
-  await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL!,
+  await transporter.sendMail({
+    from: `"Prepmate" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Verify your Prepmate email",
     html: `
