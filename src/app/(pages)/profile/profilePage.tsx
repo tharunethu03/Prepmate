@@ -12,10 +12,13 @@ import {
   Github,
   Linkedin,
   Lock,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { BADGES } from "@/lib/badge-definitions";
+import CreatorAnalyticsTab from "./CreatorAnalyticsTab";
+import WeakAreasPanel from "./WeakAreasPanel";
 
 type Attempt = {
   id: string;
@@ -95,7 +98,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"attempts" | "public" | "private">("attempts");
+  const [tab, setTab] = useState<"attempts" | "public" | "private" | "creator">("attempts");
 
   useEffect(() => {
     fetch("/api/profile")
@@ -289,6 +292,19 @@ export default function ProfilePage() {
                   </span>
                 </button>
               )}
+              {profile.isOwnProfile && (
+                <button
+                  onClick={() => setTab("creator")}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
+                    tab === "creator"
+                      ? "border-accent text-accent"
+                      : "border-transparent text-secondary"
+                  }`}
+                >
+                  <BarChart3 size={13} />
+                  Creator
+                </button>
+              )}
             </div>
 
             {/* Attempts tab */}
@@ -338,6 +354,11 @@ export default function ProfilePage() {
                   ))
                 )}
               </div>
+            )}
+
+            {/* Creator Analytics tab */}
+            {tab === "creator" && profile.isOwnProfile && (
+              <CreatorAnalyticsTab />
             )}
 
             {/* Public/Private tabs */}
@@ -444,6 +465,9 @@ export default function ProfilePage() {
               ))}
             </div>
           </div>
+
+          {/* Weak Areas — own profile only */}
+          {profile.isOwnProfile && <WeakAreasPanel />}
 
           {/* Badges */}
           <div className="bg-foreground border border-border rounded-[22px] p-5">
