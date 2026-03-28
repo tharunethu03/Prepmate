@@ -111,4 +111,15 @@ export async function checkAndAwardBadges(userId: string) {
   if (level >= 5) await awardBadge(userId, "LEVEL_5");
   if (level >= 10) await awardBadge(userId, "LEVEL_10");
   if (level >= 20) await awardBadge(userId, "LEVEL_20");
+
+  // Resume interview badge
+  const resumeAttempt = await prisma.interviewAttempt.findFirst({
+    where: {
+      userId,
+      status: "SUBMITTED",
+      interview: { source: "resume" },
+    },
+    select: { id: true },
+  });
+  if (resumeAttempt) await awardBadge(userId, "RESUME_INTERVIEW");
 }

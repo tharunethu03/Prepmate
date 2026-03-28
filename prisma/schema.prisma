@@ -124,6 +124,7 @@ model Interview {
   createdBy    String  @db.ObjectId
   creator      User    @relation(fields: [createdBy], references: [id])
   creatorField String?
+  source       String? // e.g. "resume" for resume-generated interviews
 
   likes           Like[]
   attempts        InterviewAttempt[]

@@ -126,4 +126,11 @@ export const BADGES: BadgeDef[] = [
     emoji: "🥇",
     xpReward: 500,
   },
+  {
+    key: "RESUME_INTERVIEW",
+    name: "Tailored",
+    description: "Complete a resume-based interview",
+    emoji: "📄",
+    xpReward: 100,
+  },
 ];

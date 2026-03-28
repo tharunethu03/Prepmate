@@ -9,6 +9,7 @@ import {
   Info,
   CircleQuestionMark,
   Settings,
+  FileText,
 } from "lucide-react";
 import { SidebarItem } from "./sidebarItem";
 import { usePathname } from "next/navigation";
@@ -99,6 +100,20 @@ const Sidebar = () => {
                 size={22}
                 className={`${
                   pathname === "/challenges"
+                    ? "text-primary"
+                    : "text-foreground"
+                }`}
+              />
+            }
+          />
+          <SidebarItem
+            href="/resume-interview"
+            label="Resume Interview"
+            icon={
+              <FileText
+                size={22}
+                className={`${
+                  pathname === "/resume-interview"
                     ? "text-primary"
                     : "text-foreground"
                 }`}

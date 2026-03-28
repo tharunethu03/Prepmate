@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   X,
+  FileText,
 } from "lucide-react";
 
 import { SidebarItem } from "./sidebarItem";
@@ -192,6 +193,11 @@ const FloatingSidebar = () => {
                   href: "/challenges",
                   label: "Challenges",
                   icon: Puzzle,
+                },
+                {
+                  href: "/resume-interview",
+                  label: "Resume Interview",
+                  icon: FileText,
                 },
                 {
                   href: "/about-us",

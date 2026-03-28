@@ -108,6 +108,14 @@ const Title = () => {
       ),
       subtitle: "Your Circle Starts Here",
     },
+     "/resume-interview": {
+      title: (
+        <>
+          Resume <span className="text-accent"> Interview</span>
+        </>
+      ),
+      subtitle: "Upload your CV and get questions tailored to your exact experience",
+    },
   };
 
   const pathname = usePathname();
