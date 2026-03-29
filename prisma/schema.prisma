@@ -25,8 +25,10 @@ model User {
 
   emailVerified DateTime?
 
-  role           String  @default("STUDENT")
-  creatorRequest Boolean @default(false)
+  role                 String    @default("STUDENT") // "STUDENT" | "CREATOR" | "ADMIN"
+  creatorRequest       Boolean   @default(false)
+  creatorRequestStatus String?   // "PENDING" | "DECLINED"
+  creatorRequestedAt   DateTime?
 
   portfolioLink       String?
   linkedinLink        String?

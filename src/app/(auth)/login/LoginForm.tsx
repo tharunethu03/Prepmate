@@ -43,7 +43,9 @@ const LoginForm = () => {
         return;
       }
 
-      if (!session.user.profileCompleted) {
+      if (session.user.role === "ADMIN") {
+        router.push("/admin");
+      } else if (!session.user.profileCompleted) {
         router.push("/profile-setup");
       } else {
         router.push(callbackUrl);

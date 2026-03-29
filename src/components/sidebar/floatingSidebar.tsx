@@ -13,10 +13,12 @@ import {
   LogOut,
   X,
   FileText,
+  ShieldCheck,
 } from "lucide-react";
 
 import { SidebarItem } from "./sidebarItem";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion, AnimatePresence, easeOut, easeIn } from "framer-motion";
 
 const FloatingSidebar = () => {
@@ -25,6 +27,8 @@ const FloatingSidebar = () => {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
 
   // Close when clicking outside
   useEffect(() => {
@@ -199,6 +203,9 @@ const FloatingSidebar = () => {
                   label: "Resume Interview",
                   icon: FileText,
                 },
+                ...(isAdmin
+                  ? [{ href: "/admin", label: "Admin Panel", icon: ShieldCheck }]
+                  : []),
                 {
                   href: "/about-us",
                   label: "About Us",

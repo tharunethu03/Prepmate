@@ -7,7 +7,8 @@ export default async function Home() {
   const session = await getServerSession(authOptions);
 
   if (session) {
-    if (session.user.onboardingCompleted) redirect("/dashboard");
+    if (session.user.role === "ADMIN") redirect("/admin");
+    else if (session.user.onboardingCompleted) redirect("/dashboard");
     else redirect("/profile-setup");
   }
 

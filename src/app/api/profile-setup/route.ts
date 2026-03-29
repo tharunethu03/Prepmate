@@ -31,6 +31,8 @@ export async function POST(req: Request) {
       avatar: body.selectedAvatar,
       profileCompleted: true,
       creatorRequest: body.accountType === "creator",
+      creatorRequestStatus: body.accountType === "creator" ? "PENDING" : null,
+      creatorRequestedAt: body.accountType === "creator" ? new Date() : null,
       portfolioLink: body.portfolioLink,
       linkedinLink: body.linkedinLink,
       githubLink: body.githubLink,

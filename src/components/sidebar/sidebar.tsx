@@ -10,13 +10,17 @@ import {
   CircleQuestionMark,
   Settings,
   FileText,
+  ShieldCheck,
 } from "lucide-react";
 import { SidebarItem } from "./sidebarItem";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 const Sidebar = () => {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
 
   return (
     <TooltipPrimitive.Provider delayDuration={800}>
@@ -123,6 +127,20 @@ const Sidebar = () => {
         </div>
 
         <div className="flex flex-col gap-2">
+          {isAdmin && (
+            <SidebarItem
+              href="/admin"
+              label="Admin Panel"
+              icon={
+                <ShieldCheck
+                  size={22}
+                  className={`${
+                    pathname.startsWith("/admin") ? "text-primary" : "text-foreground"
+                  }`}
+                />
+              }
+            />
+          )}
           <SidebarItem
             href="/about-us"
             label="About Us"
