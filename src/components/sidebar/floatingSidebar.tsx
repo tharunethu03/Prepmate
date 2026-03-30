@@ -165,7 +165,7 @@ const FloatingSidebar = () => {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="fixed top-15 left-3 flex flex-col justify-between py-8 px-3 rounded-[22px] w-fit z-40 "
+              className="fixed top-15 left-3 flex flex-col gap-2 py-8 px-3 rounded-[22px] w-fit z-40 "
             >
               {[
                 {

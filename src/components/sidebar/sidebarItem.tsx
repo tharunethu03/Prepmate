@@ -29,7 +29,7 @@ export const SidebarItem = ({ href, icon, label }: SidebarItemProps) => {
     <Tooltip.Root>
       <Tooltip.Trigger asChild>
         <div className="flex flex-col items-start">
-          <Link href={href} className="relative p-2 md:p-0 rounded-full">
+          <Link href={href} className="relative  md:p-0 rounded-full">
             <div className="flex flex-row items-center justify-center gap-2 md:gap-0 bg-foreground md:bg-transparent border border-border md:border-none rounded-full py-3 px-5 md:px-3">
               {isActive && (
                 <motion.div
