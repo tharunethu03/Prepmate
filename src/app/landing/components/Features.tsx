@@ -40,19 +40,36 @@ const features = [
 export function Features() {
   return (
     <section id="features" className="relative py-24 px-5 overflow-hidden">
-      {/* prop3 — puzzle, top-left */}
       <div className="absolute top-10 left-4 hidden lg:block pointer-events-none opacity-50">
         <FadeIn delay={300} direction="none">
-          <div style={{ animation: "floatUpL 4s ease-in-out 1s infinite both" }}>
-            <Image src="/landing/prop3.png" alt="" width={70} height={70} className="-rotate-12" style={{ imageRendering: "auto" }} />
+          <div
+            style={{ animation: "floatUpL 4s ease-in-out 1s infinite both" }}
+          >
+            <Image
+              src="/landing/prop3.png"
+              alt=""
+              width={70}
+              height={70}
+              className="-rotate-12"
+              style={{ imageRendering: "auto" }}
+            />
           </div>
         </FadeIn>
       </div>
-      {/* prop1 — top-right */}
+
       <div className="absolute bottom-8 right-4 hidden lg:block pointer-events-none opacity-50">
         <FadeIn delay={400} direction="none">
-          <div style={{ animation: "floatUp 3.5s ease-in-out 0.8s infinite both" }}>
-            <Image src="/landing/prop1.png" alt="" width={75} height={75} className="rotate-12" style={{ imageRendering: "auto" }} />
+          <div
+            style={{ animation: "floatUp 3.5s ease-in-out 0.8s infinite both" }}
+          >
+            <Image
+              src="/landing/prop1.png"
+              alt=""
+              width={75}
+              height={75}
+              className="rotate-12"
+              style={{ imageRendering: "auto" }}
+            />
           </div>
         </FadeIn>
       </div>
@@ -69,7 +86,8 @@ export function Features() {
             </h2>
             <p className="text-secondary max-w-xl mx-auto text-sm md:text-base">
               From AI-generated questions to real-time voice coaching and
-              detailed feedback — Prepmate covers the full interview prep journey.
+              detailed feedback — Prepmate covers the full interview prep
+              journey.
             </p>
           </div>
         </FadeIn>
@@ -84,7 +102,9 @@ export function Features() {
                 <h3 className="text-base font-semibold text-primary mb-2">
                   {f.title}
                 </h3>
-                <p className="text-sm text-secondary leading-relaxed">{f.desc}</p>
+                <p className="text-sm text-secondary leading-relaxed">
+                  {f.desc}
+                </p>
               </div>
             </FadeIn>
           ))}

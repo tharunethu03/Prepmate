@@ -1,16 +1,59 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const RegisterForm = () => {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [signingIn, setSigningIn] = useState(false);
+  const savedPassword = useRef("");
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Start polling once the user has submitted
+  useEffect(() => {
+    if (!submitted) return;
+
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(
+          `/api/auth/check-verification?email=${encodeURIComponent(email)}`,
+        );
+        const data = await res.json();
+        if (data.verified) {
+          clearInterval(pollRef.current!);
+          pollRef.current = null;
+          setSigningIn(true);
+          const result = await signIn("credentials", {
+            email,
+            password: savedPassword.current,
+            redirect: false,
+          });
+          if (result?.ok) {
+            router.push("/profile-setup");
+          } else {
+            // Verified but auto-login failed — send to login page
+            router.push("/login?verified=true");
+          }
+        }
+      } catch {
+        // Network hiccup — keep polling
+      }
+    }, 3000);
+
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submitted]);
 
   const validatePassword = () => {
     if (password.length < 8) {
@@ -40,6 +83,7 @@ const RegisterForm = () => {
       });
 
       if (res.ok) {
+        savedPassword.current = password;
         setSubmitted(true);
       } else {
         const data = await res.json();
@@ -52,6 +96,16 @@ const RegisterForm = () => {
     }
   };
 
+  if (signingIn) {
+    return (
+      <div className="text-center py-4">
+        <div className="text-4xl mb-4">🎉</div>
+        <h3 className="text-lg font-semibold mb-2">Email verified!</h3>
+        <p className="text-secondary text-sm">Setting up your account...</p>
+      </div>
+    );
+  }
+
   if (submitted) {
     return (
       <div className="text-center py-4">
@@ -60,13 +114,17 @@ const RegisterForm = () => {
         <p className="text-secondary text-sm">
           We sent a verification link to{" "}
           <span className="text-accent font-medium">{email}</span>. Click the
-          link to complete your registration.
+          link to complete your registration — this page will continue
+          automatically once you verify.
         </p>
         <p className="text-secondary text-xs mt-3">
           Didn&apos;t receive it? Check your spam folder or{" "}
           <button
             className="text-accent hover:underline"
-            onClick={() => setSubmitted(false)}
+            onClick={() => {
+              if (pollRef.current) clearInterval(pollRef.current);
+              setSubmitted(false);
+            }}
           >
             try again
           </button>

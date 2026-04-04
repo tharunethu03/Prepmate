@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import crypto from "crypto";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -26,24 +25,17 @@ export async function GET(req: Request) {
     );
 
   // Create the real user now that email is verified
-  const autoLoginToken = crypto.randomBytes(32).toString("hex");
-  const autoLoginTokenExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-
   await prisma.user.create({
     data: {
       email: pending.email,
       password: pending.hashedPassword,
       emailVerified: new Date(),
-      autoLoginToken,
-      autoLoginTokenExpires,
     },
   });
 
   // Clean up pending record
   await prisma.pendingRegistration.delete({ where: { token } });
 
-  // Redirect to auto-login page
-  return NextResponse.redirect(
-    new URL(`/auth/verified?token=${autoLoginToken}`, req.url),
-  );
+  // Show "close this tab" page — the signup tab polls and auto-signs in
+  return NextResponse.redirect(new URL("/auth/verified", req.url));
 }
