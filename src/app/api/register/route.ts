@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       data: { email, hashedPassword: hashed, token, expires },
     });
 
-    const verifyUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${token}`;
+    const verifyUrl = `${process.env.NEXTAUTH_URL}/verify-email?token=${token}`;
 
     await transporter.sendMail({
       from: `"Prepmate" <${process.env.EMAIL_USER}>`,

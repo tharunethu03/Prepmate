@@ -5,24 +5,17 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const token = searchParams.get("token");
 
-  if (!token)
-    return NextResponse.redirect(
-      new URL("/login?error=invalid-token", req.url),
-    );
+  if (!token) return NextResponse.json({ error: "missing-token" }, { status: 400 });
 
   const pending = await prisma.pendingRegistration.findUnique({
     where: { token },
   });
 
   if (!pending)
-    return NextResponse.redirect(
-      new URL("/login?error=invalid-token", req.url),
-    );
+    return NextResponse.json({ error: "invalid-token" }, { status: 400 });
 
   if (pending.expires < new Date())
-    return NextResponse.redirect(
-      new URL("/login?error=token-expired", req.url),
-    );
+    return NextResponse.json({ error: "token-expired" }, { status: 400 });
 
   // Create the real user now that email is verified
   await prisma.user.create({
@@ -36,6 +29,5 @@ export async function GET(req: Request) {
   // Clean up pending record
   await prisma.pendingRegistration.delete({ where: { token } });
 
-  // Show "close this tab" page — the signup tab polls and auto-signs in
-  return NextResponse.redirect(new URL("/auth/verified", req.url));
+  return NextResponse.json({ ok: true });
 }

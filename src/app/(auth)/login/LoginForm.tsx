@@ -151,14 +151,9 @@ const LoginForm = () => {
             ✅ Email verified! You can now log in.
           </p>
         )}
-        {error === "invalid-token" && (
-          <p className="text-sm text-error bg-error/10 border border-error/30 rounded-[12px] px-4 py-2">
-            Invalid or expired verification link. Please request a new one.
-          </p>
-        )}
-        {error === "token-expired" && (
-          <p className="text-sm text-error bg-error/10 border border-error/30 rounded-[12px] px-4 py-2">
-            Your verification link has expired. Please request a new one.
+        {(error === "invalid-token" || error === "token-expired") && (
+          <p className="text-sm text-secondary bg-muted/50 border border-border rounded-[12px] px-4 py-3">
+            This verification link has already been used or has expired. If your email is verified, just log in below.
           </p>
         )}
         <div>
