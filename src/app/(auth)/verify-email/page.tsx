@@ -29,7 +29,7 @@ function VerifyEmailContent() {
 
   return (
     <div className="flex-1 flex items-center justify-center">
-      <div className="text-center max-w-sm px-6">
+      <div className="text-center max-w-lg px-6">
         <div className="mx-auto mb-6 w-20 h-20 rounded-full border-[3px] border-accent flex items-center justify-center">
           <svg
             viewBox="0 0 24 24"
@@ -57,7 +57,7 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col items-center">
       <header className="px-8 py-5">
         <Image
           src="/logo.png"
