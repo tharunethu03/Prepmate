@@ -30,7 +30,7 @@ export default function WelcomeCard() {
   }, []);
 
   return (
-    <div className="bg-accent-gradient rounded-[22px] px-8 py-6 flex flex-col md:flex-row md:items-center gap-6">
+    <div className="bg-accent-gradient rounded-[22px] px-8 py-6 flex flex-col md:flex-row md:items-center gap-6 card-shadow">
       <div className="flex items-center gap-5 flex-1">
         <Image
           src={

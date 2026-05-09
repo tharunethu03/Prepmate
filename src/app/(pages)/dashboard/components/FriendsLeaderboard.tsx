@@ -15,7 +15,7 @@ export default function FriendsLeaderboard({
   currentUserId,
 }: Props) {
   return (
-    <div className="flex-1 bg-foreground border border-border rounded-[22px] p-6">
+    <div className="flex-1 bg-foreground border border-border rounded-[22px] card-shadow p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold">Friends Leaderboard</h3>
         <Link href="/leaderboard">

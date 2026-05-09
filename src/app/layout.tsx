@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import { Toaster } from "@/components/ui/sonner";
-import { toast } from "sonner";
 import { ThemeProvider } from "next-themes";
 
 const inter = Inter({
@@ -26,10 +25,12 @@ export default function RootLayout({
       <body
         className={`${inter.className} antialiased bg-background text-foreground light`}
       >
-        <Providers>
-          <Toaster position="top-center" />
-          {children}
-        </Providers>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <Providers>
+            <Toaster position="top-center" />
+            {children}
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

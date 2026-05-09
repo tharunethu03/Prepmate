@@ -8,7 +8,7 @@ export default function XpProgressBar({
   if (!profile?.xpProgress) return null;
 
   return (
-    <div className="bg-foreground border border-border rounded-[22px] px-8 py-5">
+    <div className="bg-foreground border border-border rounded-[22px] card-shadow px-8 py-5">
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-semibold">Level {profile.level}</p>
         <p className="text-xs text-secondary">

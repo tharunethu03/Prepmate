@@ -18,7 +18,7 @@ export default function RecentAttempts({
   const router = useRouter();
 
   return (
-    <div className="flex-1 bg-foreground border border-border rounded-[22px] p-6">
+    <div className="flex-1 bg-foreground border border-border rounded-[22px] card-shadow p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold">Recent Attempts</h3>
         <Link href="/explore-interviews">

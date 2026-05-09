@@ -113,7 +113,7 @@ const InterviewModal = ({
     <TooltipPrimitive.Provider delayDuration={1000}>
       <div
         onClick={onPreview}
-        className="flex flex-col gap-3 w-full shadow-lg min-w-85 md:min-w-100 max-w-85 md:max-w-100 h-70 bg-foreground border border-border px-4 sm:px-8 py-4 sm:py-5 rounded-[22px] hover:scale-102 transition-transform cursor-pointer"
+        className="flex flex-col gap-3 w-full card-shadow min-w-85 md:min-w-100 max-w-85 md:max-w-100 h-70 bg-foreground border border-border px-4 sm:px-8 py-4 sm:py-5 rounded-[22px] hover:scale-102 transition-transform cursor-pointer"
       >
         <h2 className="text-sm sm:text-lg font-semibold">{interview.title}</h2>
 

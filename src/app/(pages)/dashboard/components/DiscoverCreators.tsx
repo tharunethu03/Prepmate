@@ -67,7 +67,7 @@ export default function DiscoverCreators() {
         {creators.map((c) => (
           <div
             key={c.id}
-            className="bg-foreground border border-border rounded-[22px] p-4 flex flex-col items-center gap-3 text-center shadow-lg"
+            className="bg-foreground border border-border rounded-[22px] p-4 flex flex-col items-center gap-3 text-center card-shadow"
           >
             <Image
               src={c.avatar ?? "/profile-setup/avatar1.png"}

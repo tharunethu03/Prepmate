@@ -250,15 +250,7 @@ export default function AddFriendsModal({ onFinish }: AddFriendsModalProps) {
           )}
         </div>
 
-        <div className="flex justify-end mt-5">
-          <Button
-            onClick={onFinish}
-            className="w-full sm:w-32 h-10"
-            type="button"
-          >
-            Done
-          </Button>
-        </div>
+       
       </div>
     </div>
   );

@@ -30,7 +30,7 @@ export default function StatsRow({ profile }: { profile: ProfileData | null }) {
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className="flex-1 min-w-[100px] bg-foreground border border-border rounded-[22px] px-5 py-4 flex flex-col items-center gap-1"
+          className="flex-1 min-w-[100px] bg-foreground border border-border rounded-[22px] card-shadow px-5 py-4 flex flex-col items-center gap-1"
         >
           {stat.icon}
           <p className="text-2xl font-bold">{stat.value}</p>

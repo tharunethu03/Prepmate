@@ -1,6 +1,6 @@
 export function SkeletonInterviewCard() {
   return (
-    <div className="flex flex-col gap-3 w-full sm:w-fit shadow-lg min-w-[200px] max-w-[300px] md:max-w-100 min-h-65 bg-foreground border-2 border-border px-4 sm:px-8 py-4 sm:py-5 rounded-[22px] animate-pulse">
+    <div className="flex flex-col gap-3 w-full sm:w-fit card-shadow min-w-[200px] max-w-[300px] md:max-w-100 min-h-65 bg-foreground border-2 border-border px-4 sm:px-8 py-4 sm:py-5 rounded-[22px] animate-pulse">
       <div className="h-5 bg-border rounded-full w-3/4" />
       <div className="flex gap-2">
         <div className="h-7 bg-border rounded-[12px] w-24" />
@@ -39,7 +39,7 @@ export function SkeletonSection({ count = 3 }: { count?: number }) {
 
 export function SkeletonWelcomeCard() {
   return (
-    <div className="bg-foreground border border-border rounded-[22px] px-8 py-6 flex items-center gap-5 animate-pulse">
+    <div className="bg-foreground border border-border rounded-[22px] card-shadow px-8 py-6 flex items-center gap-5 animate-pulse">
       <div className="w-[72px] h-[72px] bg-border rounded-full shrink-0" />
       <div className="flex-1 flex flex-col gap-2">
         <div className="h-4 bg-border rounded-full w-24" />
