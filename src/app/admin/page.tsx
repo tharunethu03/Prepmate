@@ -146,7 +146,7 @@ export default function AdminDashboard() {
               <CardContent className="flex items-center gap-3 py-4">
                 <AlertCircle size={18} className="text-accent shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-foreground">
+                  <p className="text-sm font-semibold text-primary">
                     {stats.pendingCreatorRequests} pending creator request
                     {stats.pendingCreatorRequests !== 1 ? "s" : ""}
                   </p>

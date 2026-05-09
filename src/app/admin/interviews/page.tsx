@@ -28,6 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import {
   Select,
   SelectContent,
@@ -75,6 +76,7 @@ export default function AdminInterviewsPage() {
   const [visibility, setVisibility] = useState("all");
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -97,9 +99,15 @@ export default function AdminInterviewsPage() {
     load();
   }, [load]);
 
-  const remove = async (id: string, title: string) => {
-    if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+  const confirmAndDelete = (id: string, title: string) => {
+    setConfirmDelete({ id, title });
+  };
+
+  const remove = async () => {
+    if (!confirmDelete) return;
+    const { id } = confirmDelete;
     setDeleting(id);
+    setConfirmDelete(null);
     try {
       const res = await fetch(`/api/admin/interviews/${id}`, {
         method: "DELETE",
@@ -117,6 +125,17 @@ export default function AdminInterviewsPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <ConfirmModal
+        open={!!confirmDelete}
+        title="Delete Interview?"
+        description={`"${confirmDelete?.title}" will be permanently removed. This action cannot be undone.`}
+        confirmLabel="Delete"
+        destructive
+        loading={!!deleting}
+        onConfirm={remove}
+        onCancel={() => setConfirmDelete(null)}
+      />
+
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -221,7 +240,7 @@ export default function AdminInterviewsPage() {
                       className="border-b transition-all hover:border-accent/50"
                     >
                       <TableCell>
-                        <p className="text-sm font-medium text-foreground truncate max-w-[180px]">
+                        <p className="text-sm font-medium text-accent truncate max-w-[180px]">
                           {iv.title}
                         </p>
                         <p className="text-xs text-secondary truncate">
@@ -293,7 +312,7 @@ export default function AdminInterviewsPage() {
                             <DropdownMenuItem
                               className="text-error focus:bg-error hover:text-foreground transition-colors"
                               disabled={deleting === iv.id}
-                              onClick={() => remove(iv.id, iv.title)}
+                              onClick={() => confirmAndDelete(iv.id, iv.title)}
                             >
                               <Trash2 size={13} className="mr-2" />
                               Delete

@@ -70,10 +70,10 @@ function DeclineModal({
       >
         <Card className="border-border">
           <CardHeader className="pb-3">
-            <h3 className="font-bold text-foreground text-base">Decline Request</h3>
+            <h3 className="font-bold text-primary text-base">Decline Request</h3>
             <p className="text-sm text-muted-foreground">
               Declining{" "}
-              <span className="text-foreground font-medium">
+              <span className="text-primary font-medium">
                 {user.name ?? user.email}
               </span>
               . Add an optional reason — it will be included in the email sent to the user.
@@ -199,7 +199,7 @@ export default function CreatorRequestsPage() {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-semibold text-foreground leading-tight">
+                          <p className="font-semibold text-primary leading-tight">
                             {req.name ?? "—"}
                           </p>
                           <p className="text-sm text-muted-foreground">{req.email}</p>
@@ -208,7 +208,7 @@ export default function CreatorRequestsPage() {
 
                       {/* Stats */}
                       <div className="text-right shrink-0">
-                        <p className="text-sm text-foreground font-medium">Lv. {req.level}</p>
+                        <p className="text-sm text-primary font-medium">Lv. {req.level}</p>
                         <p className="text-xs text-muted-foreground">
                           {req.xp} XP · {req._count.attempts} attempts
                         </p>

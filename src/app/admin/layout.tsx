@@ -1,9 +1,10 @@
 "use client";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 import {
   LayoutGrid,
   Users,
@@ -11,11 +12,13 @@ import {
   BadgeCheck,
   BarChart3,
   ShieldCheck,
-  ArrowLeft,
   Menu,
   X,
   ChevronLeft,
+  Moon,
+  Sun,
 } from "lucide-react";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -103,34 +106,16 @@ function SidebarContent({
         </Button>
         <Button onClick={() => setLogout(true)}>Log Out</Button>
       </div>
-      {logout && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-100">
-          <div className="bg-foreground border border-accent  rounded-[22px] shadow-lg px-10 py-5">
-            <div className="flex flex-col items-center justify-center">
-              <h3 className="mb-3">Log out from Admin Panel?</h3>
-              <p className="sub-text mb-5 max-w-xs text-center">
-                You’re about to sign out of the admin panel.
-              </p>
-              <div className="flex items-center justify-between w-full px-10 gap-3 md:gap-0">
-                <Button
-                  variant={"outline"}
-                  className="cursor-pointer px-6"
-                  onClick={() => setLogout(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant={"default"}
-                  className="bg-error hover:bg-error/90 px-6 text-white"
-                  onClick={() => signOut()}
-                >
-                  Logout
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={logout}
+        title="Log out from Admin Panel?"
+        description="You’re about to sign out of the admin panel."
+        confirmLabel="Logout"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={() => signOut()}
+        onCancel={() => setLogout(false)}
+      />
     </div>
   );
 }
@@ -144,6 +129,14 @@ function getPageName(pathname: string) {
   return "Admin";
 }
 
+function useIsClient() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
+
 export default function AdminLayout({
   children,
 }: {
@@ -153,6 +146,9 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const isClient = useIsClient();
+  const isDark = isClient && theme === "dark";
 
   useEffect(() => {
     if (status === "loading") return;
@@ -222,9 +218,19 @@ export default function AdminLayout({
             <Menu size={20} />
           </button>
 
-          <div className="ml-auto flex items-center gap-2 text-sm text-secondary">
-            <ShieldCheck size={14} className="text-accent" />
-            <span>{session.user.name ?? session.user.email}</span>
+          <div className="ml-auto flex items-center gap-3">
+            {/* Dark mode toggle */}
+            <button
+              onClick={() => setTheme(isDark ? "light" : "dark")}
+              className="p-1.5 rounded-full text-secondary hover:text-foreground hover:bg-accent/20 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {isDark ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
+            <div className="flex items-center gap-2 text-sm text-secondary">
+              <ShieldCheck size={14} className="text-accent" />
+              <span>{session.user.name ?? session.user.email}</span>
+            </div>
           </div>
         </header>
 
