@@ -69,15 +69,22 @@ export default function DiscoverCreators() {
             key={c.id}
             className="bg-foreground border border-border rounded-[22px] p-4 flex flex-col items-center gap-3 text-center card-shadow"
           >
-            <Image
-              src={c.avatar ?? "/profile-setup/avatar1.png"}
-              width={56}
-              height={56}
-              alt="avatar"
-              className="rounded-full"
-            />
+            <Link href={`/profile/${c.id}`}>
+              <Image
+                src={c.avatar ?? "/profile-setup/avatar1.png"}
+                width={56}
+                height={56}
+                alt="avatar"
+                className="rounded-full hover:opacity-80 transition-opacity"
+              />
+            </Link>
             <div>
-              <p className="font-semibold text-sm">{c.name ?? "Creator"}</p>
+              <Link
+                href={`/profile/${c.id}`}
+                className="font-semibold text-sm text-accent hover:underline underline-offset-2 transition-colors"
+              >
+                {c.name ?? "Creator"}
+              </Link>
               <p className="text-xs text-secondary">
                 {c.field ?? c.roleTitle ?? ""}
               </p>

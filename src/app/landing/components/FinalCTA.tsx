@@ -5,15 +5,17 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, MessageSquare } from "lucide-react";
 import { FadeIn } from "./FadeIn";
+import { useDarkMode } from "./useDarkMode";
 
 export function FinalCTA() {
+  const isDark = useDarkMode();
   return (
     <section className="relative py-24 px-5 bg-foreground border-y border-border overflow-hidden">
       {/* prop3 — puzzle, left */}
       <div className="absolute left-6 top-1/2 -translate-y-1/2 hidden md:block pointer-events-none opacity-45">
         <FadeIn delay={200} direction="none">
           <div style={{ animation: "floatUpL 4.2s ease-in-out 0.5s infinite both" }}>
-            <Image src="/landing/prop3.png" alt="" width={65} height={65} className="rotate-12" style={{ imageRendering: "auto" }} />
+            <Image src={isDark ? "/landing/prop3-dark.png" : "/landing/prop3.png"} alt="" width={65} height={65} className="rotate-12" style={{ imageRendering: "auto" }} />
           </div>
         </FadeIn>
       </div>
@@ -21,7 +23,7 @@ export function FinalCTA() {
       <div className="absolute right-6 top-1/2 -translate-y-1/2 hidden md:block pointer-events-none opacity-45">
         <FadeIn delay={300} direction="none">
           <div style={{ animation: "floatBob 3.6s ease-in-out 0.9s infinite both" }}>
-            <Image src="/landing/prop2.png" alt="" width={65} height={65} className="-rotate-6" style={{ imageRendering: "auto" }} />
+            <Image src={isDark ? "/landing/prop2-dark.png" : "/landing/prop2.png"} alt="" width={65} height={65} className="-rotate-6" style={{ imageRendering: "auto" }} />
           </div>
         </FadeIn>
       </div>

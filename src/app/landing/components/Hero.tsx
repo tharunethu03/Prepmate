@@ -5,8 +5,11 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Zap } from "lucide-react";
 import { FadeIn } from "./FadeIn";
+import { useDarkMode } from "./useDarkMode";
 
 export function Hero() {
+  const isDark = useDarkMode();
+
   return (
     <section className="relative overflow-hidden pt-20 pb-24 px-5">
       {/* Subtle background glow */}
@@ -19,7 +22,7 @@ export function Hero() {
         <FadeIn delay={500} direction="none">
           <div style={{ animation: "floatUpL 3.8s ease-in-out 1.2s infinite both" }}>
             <Image
-              src="/landing/prop3.png"
+              src={isDark ? "/landing/prop3-dark.png" : "/landing/prop3.png"}
               alt=""
               width={95}
               height={95}
@@ -35,7 +38,7 @@ export function Hero() {
         <FadeIn delay={600} direction="none">
           <div style={{ animation: "floatUp 3.2s ease-in-out 1.3s infinite both" }}>
             <Image
-              src="/landing/prop1.png"
+              src={isDark ? "/landing/prop1-dark.png" : "/landing/prop1.png"}
               alt=""
               width={115}
               height={115}
@@ -51,7 +54,7 @@ export function Hero() {
         <FadeIn delay={700} direction="none">
           <div style={{ animation: "floatWiggle 2.9s ease-in-out 1.4s infinite both" }}>
             <Image
-              src="/landing/prop5.png"
+              src={isDark ? "/landing/prop5-dark.png" : "/landing/prop5.png"}
               alt=""
               width={85}
               height={85}
@@ -67,7 +70,7 @@ export function Hero() {
         <FadeIn delay={650} direction="none">
           <div style={{ animation: "floatBob 4.3s ease-in-out 1.3s infinite both" }}>
             <Image
-              src="/landing/prop2.png"
+              src={isDark ? "/landing/prop2-dark.png" : "/landing/prop2.png"}
               alt=""
               width={105}
               height={105}
@@ -83,7 +86,7 @@ export function Hero() {
         <FadeIn delay={750} direction="none">
           <div style={{ animation: "floatSway 5s ease-in-out 1.5s infinite both" }}>
             <Image
-              src="/landing/prop4.png"
+              src={isDark ? "/landing/prop4-dark.png" : "/landing/prop4.png"}
               alt=""
               width={160}
               height={100}

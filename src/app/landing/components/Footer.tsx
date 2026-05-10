@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Shield } from "lucide-react";
+import { useDarkMode } from "./useDarkMode";
 
 const companyLinks: { label: string; href: string }[] = [
   { label: "About", href: "/about" },
@@ -11,6 +12,7 @@ const companyLinks: { label: string; href: string }[] = [
 ];
 
 export function Footer() {
+  const isDark = useDarkMode();
   return (
     <footer className="py-12 px-5 border-t border-border">
       <div className="max-w-6xl mx-auto">
@@ -19,7 +21,7 @@ export function Footer() {
           <div className="col-span-2 md:col-span-1">
             <div className="mb-3">
               <Image
-                src="/logo.png"
+                src={isDark ? "/logo-dark.png" : "/logo.png"}
                 alt="Prepmate"
                 width={110}
                 height={28}

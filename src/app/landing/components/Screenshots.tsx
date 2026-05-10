@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Mic, Sparkles, BarChart3, Trophy } from "lucide-react";
 import { FadeIn } from "./FadeIn";
+import { useDarkMode } from "./useDarkMode";
 
 const screenshots = [
   {
@@ -36,6 +37,7 @@ const screenshots = [
 ];
 
 export function Screenshots() {
+  const isDark = useDarkMode();
   return (
     <section
       id="screenshots"
@@ -45,7 +47,7 @@ export function Screenshots() {
       <div className="absolute top-8 left-5 hidden md:block pointer-events-none opacity-45">
         <FadeIn delay={250} direction="none">
           <div style={{ animation: "floatUp 3.8s ease-in-out 1s infinite both" }}>
-            <Image src="/landing/prop1.png" alt="" width={68} height={68} className="-rotate-6" style={{ imageRendering: "auto" }} />
+            <Image src={isDark ? "/landing/prop1-dark.png" : "/landing/prop1.png"} alt="" width={68} height={68} className="-rotate-6" style={{ imageRendering: "auto" }} />
           </div>
         </FadeIn>
       </div>
@@ -53,7 +55,7 @@ export function Screenshots() {
       <div className="absolute bottom-8 right-5 hidden md:block pointer-events-none opacity-45">
         <FadeIn delay={400} direction="none">
           <div style={{ animation: "floatWiggle 3s ease-in-out 0.8s infinite both" }}>
-            <Image src="/landing/prop5.png" alt="" width={60} height={60} className="rotate-12" style={{ imageRendering: "auto" }} />
+            <Image src={isDark ? "/landing/prop5-dark.png" : "/landing/prop5.png"} alt="" width={60} height={60} className="rotate-12" style={{ imageRendering: "auto" }} />
           </div>
         </FadeIn>
       </div>

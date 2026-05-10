@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Mic, Brain, BarChart3, Trophy, Users, Target } from "lucide-react";
 import { FadeIn } from "./FadeIn";
+import { useDarkMode } from "./useDarkMode";
 
 const features = [
   {
@@ -38,6 +39,7 @@ const features = [
 ];
 
 export function Features() {
+  const isDark = useDarkMode();
   return (
     <section id="features" className="relative py-24 px-5 overflow-hidden">
       <div className="absolute top-10 left-4 hidden lg:block pointer-events-none opacity-50">
@@ -46,7 +48,7 @@ export function Features() {
             style={{ animation: "floatUpL 4s ease-in-out 1s infinite both" }}
           >
             <Image
-              src="/landing/prop3.png"
+              src={isDark ? "/landing/prop3-dark.png" : "/landing/prop3.png"}
               alt=""
               width={70}
               height={70}
@@ -63,7 +65,7 @@ export function Features() {
             style={{ animation: "floatUp 3.5s ease-in-out 0.8s infinite both" }}
           >
             <Image
-              src="/landing/prop1.png"
+              src={isDark ? "/landing/prop1-dark.png" : "/landing/prop1.png"}
               alt=""
               width={75}
               height={75}

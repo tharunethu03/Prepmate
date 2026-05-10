@@ -112,6 +112,25 @@ h3 {
   color: var(--secondary);
 }
 
+/* ── Force light mode on specific pages (landing, auth) ── */
+/* Redefines all CSS vars so dark-mode overrides from <html class="dark">  */
+/* don't bleed into these surfaces.                                         */
+.force-light {
+  --background: #f8faff;
+  --foreground: #ffffff;
+  --primary: #1e1e1e;
+  --secondary: #6b7280;
+  --tertiary: #9ca3af;
+  --accent: #3c4efb;
+  --muted: #d1d5db;
+  --border: #e2e8f0;
+  --accent-gradient: linear-gradient(120deg, #3c4ffb 0%, #33a3fa 100%);
+  --success: #22c55e;
+  --warning: #facc15;
+  --error: #ef4444;
+  color-scheme: light;
+}
+
 /* Hide scrollbar but keep scrolling */
 .scrollbar-hide {
   -ms-overflow-style: none; /* IE & Edge */

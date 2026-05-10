@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Target, Sparkles, Mic, BarChart3 } from "lucide-react";
 import { FadeIn } from "./FadeIn";
+import { useDarkMode } from "./useDarkMode";
 
 const steps = [
   {
@@ -32,6 +33,7 @@ const steps = [
 ];
 
 export function HowItWorks() {
+  const isDark = useDarkMode();
   return (
     <section
       id="how-it-works"
@@ -41,7 +43,7 @@ export function HowItWorks() {
       <div className="absolute bottom-8 left-4 hidden lg:block pointer-events-none opacity-50">
         <FadeIn delay={300} direction="none">
           <div style={{ animation: "floatWiggle 3.2s ease-in-out 1.2s infinite both" }}>
-            <Image src="/landing/prop5.png" alt="" width={65} height={65} className="rotate-6" style={{ imageRendering: "auto" }} />
+            <Image src={isDark ? "/landing/prop5-dark.png" : "/landing/prop5.png"} alt="" width={65} height={65} className="rotate-6" style={{ imageRendering: "auto" }} />
           </div>
         </FadeIn>
       </div>

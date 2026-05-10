@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { CheckCircle, BarChart3 } from "lucide-react";
 import { FadeIn } from "./FadeIn";
+import { useDarkMode } from "./useDarkMode";
 
 const benefits = [
   "Practice anytime, anywhere — no scheduling needed",
@@ -16,13 +17,14 @@ const benefits = [
 ];
 
 export function Benefits() {
+  const isDark = useDarkMode();
   return (
     <section id="benefits" className="relative py-24 px-5 overflow-hidden">
       {/* prop2 — clipboard, top-right */}
       <div className="absolute top-10 right-5 hidden lg:block pointer-events-none opacity-50">
         <FadeIn delay={350} direction="none">
           <div style={{ animation: "floatBob 4.5s ease-in-out 0.6s infinite both" }}>
-            <Image src="/landing/prop2.png" alt="" width={72} height={72} className="-rotate-6" style={{ imageRendering: "auto" }} />
+            <Image src={isDark ? "/landing/prop2-dark.png" : "/landing/prop2.png"} alt="" width={72} height={72} className="-rotate-6" style={{ imageRendering: "auto" }} />
           </div>
         </FadeIn>
       </div>
