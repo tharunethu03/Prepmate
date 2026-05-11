@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, Moon, Sun, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useDarkMode } from "./useDarkMode";
 
 const navLinks = [
@@ -15,11 +17,60 @@ const navLinks = [
   { label: "Platform", id: "screenshots" },
 ];
 
+// ── Hoisted outside Navbar to avoid "component created during render" error ──
+function ThemeToggle({
+  isDark,
+  onToggle,
+  className = "",
+}: {
+  isDark: boolean;
+  onToggle: () => void;
+  className?: string;
+}) {
+  return (
+    <motion.button
+      onClick={onToggle}
+      className={`flex items-center justify-center h-9 w-9 rounded-full border border-border hover:border-accent/60 hover:bg-accent/8 text-secondary hover:text-accent outline-none cursor-pointer transition-all ${className}`}
+      whileHover={{ scale: 1.08 }}
+      whileTap={{ scale: 0.9 }}
+      transition={{ type: "spring", stiffness: 400, damping: 20 }}
+      aria-label="Toggle theme"
+    >
+      <AnimatePresence mode="wait">
+        {isDark ? (
+          <motion.span
+            key="sun"
+            initial={{ rotate: -90, opacity: 0, scale: 0.8 }}
+            animate={{ rotate: 0, opacity: 1, scale: 1 }}
+            exit={{ rotate: 90, opacity: 0, scale: 0.8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 18 }}
+            className="block"
+          >
+            <Sun size={17} className="text-current" />
+          </motion.span>
+        ) : (
+          <motion.span
+            key="moon"
+            initial={{ rotate: 90, opacity: 0, scale: 0.8 }}
+            animate={{ rotate: 0, opacity: 1, scale: 1 }}
+            exit={{ rotate: -90, opacity: 0, scale: 0.8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 18 }}
+            className="block"
+          >
+            <Moon size={17} className="text-current" />
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.button>
+  );
+}
+
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
   const isDark = useDarkMode();
 
   useEffect(() => {
@@ -41,9 +92,12 @@ export function Navbar() {
     }
   };
 
+  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
+
   return (
     <header className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
       <div className="pointer-events-auto w-full max-w-5xl">
+
         {/* ── Floating pill bar ── */}
         <div
           className={`flex items-center justify-between h-15 px-5 rounded-2xl border transition-all duration-300 ${
@@ -79,28 +133,35 @@ export function Navbar() {
             ))}
           </nav>
 
-          {/* Desktop CTAs */}
+          {/* Desktop CTAs + theme toggle */}
           <div className="hidden md:flex items-center gap-2">
+            <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
             <Link href="/login">
               <Button variant="ghost" className="h-9 px-4 text-sm font-medium">
                 Log in
               </Button>
             </Link>
             <Link href="/signup">
-              <Button className="h-9 px-5 text-sm font-semibold !rounded-xl">
+              <Button
+                className="h-9 px-5 text-sm font-semibold"
+                style={{ borderRadius: "0.75rem" }}
+              >
                 Get started
               </Button>
             </Link>
           </div>
 
-          {/* Mobile burger */}
-          <button
-            className="md:hidden flex items-center justify-center h-9 w-9 rounded-xl text-secondary hover:text-primary hover:bg-border/50 transition-colors"
-            onClick={() => setOpen((p) => !p)}
-            aria-label="Toggle menu"
-          >
-            {open ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          {/* Mobile: theme toggle + burger */}
+          <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+            <button
+              className="flex items-center justify-center h-9 w-9 rounded-xl text-secondary hover:text-primary hover:bg-border/50 transition-colors"
+              onClick={() => setOpen((p) => !p)}
+              aria-label="Toggle menu"
+            >
+              {open ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </div>
 
         {/* ── Mobile dropdown (drops below the pill) ── */}
@@ -128,6 +189,7 @@ export function Navbar() {
             </div>
           </div>
         )}
+
       </div>
     </header>
   );
