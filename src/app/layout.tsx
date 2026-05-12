@@ -21,11 +21,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // suppressHydrationWarning here and on body because browser extensions
+    // (like ColorZilla) inject attributes onto those elements after hydration,
+    // causing React to log a warning that doesn't actually mean anything is broken
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.className} antialiased bg-background text-foreground light`}
         suppressHydrationWarning
       >
+        {/* ThemeProvider wraps everything so any component in the tree can
+            call useTheme() — attribute="class" means it sets dark/light on <html> */}
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <Providers>
             <Toaster position="top-center" />

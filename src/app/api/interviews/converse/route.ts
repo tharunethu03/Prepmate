@@ -120,6 +120,7 @@ CRITICAL: Respond ONLY with raw JSON. No markdown. No extra text.
         model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: systemPrompt },
+          // Last 4 messages only — avoids hitting token limits on long interviews
           ...history.slice(-4),
           { role: "user", content: userMessage ?? "" },
         ],

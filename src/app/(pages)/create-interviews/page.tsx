@@ -28,12 +28,8 @@ const CreateInterviewPage = () => {
       try {
         const res = await fetch("/api/interviews?mine=true");
         const data = await res.json();
-
-        console.log("Fetched interviews:", data);
-
         setInterviews(data.interviews ?? []);
-      } catch (error) {
-        console.log("Failed to fetch interviews", error);
+      } catch {
         setInterviews([]);
       } finally {
         setLoading(false);

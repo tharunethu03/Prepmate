@@ -12,10 +12,12 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  // These come from the verify-email redirect — show success/error banners
   const verified = searchParams.get("verified");
   const error = searchParams.get("error");
 
-  // Forgot password state
+  // Toggling mode instead of a separate route keeps the form context (email)
+  // and avoids a full page navigation just to show a different input
   const [mode, setMode] = useState<"login" | "forgot">("login");
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotStatus, setForgotStatus] = useState<"idle" | "loading" | "sent">("idle");
@@ -35,7 +37,8 @@ const LoginForm = () => {
         return;
       }
 
-      // Fetch the session after successful sign-in
+      // signIn() alone doesn't give us the session object — need to call
+      // getSession() separately to know where to redirect the user
       const session = await getSession();
 
       if (!session?.user) {

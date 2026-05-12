@@ -21,6 +21,8 @@ const DashboardPage = () => {
   );
   const router = useRouter();
 
+  // !dismissed lets the user close the overlay immediately even before the
+  // DB update completes — avoids a flash where the overlay reappears
   const showOnboarding =
     status === "authenticated" &&
     session?.user?.onboardingCompleted === false &&
@@ -33,6 +35,8 @@ const DashboardPage = () => {
     router.refresh();
   };
 
+  // Putting sections in an array so I can map over them with an index for
+  // staggered animation — cleaner than repeating the motion.div wrapper for each
   const sections = [
     <WelcomeCard key="welcome" />,
     <PendingChallenges key="challenges" />,

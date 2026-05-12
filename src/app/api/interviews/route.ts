@@ -182,6 +182,8 @@ export async function GET(req: Request) {
       if (!session?.user?.id)
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+      // Need a separate query here because Prisma doesn't support nested relation
+      // filters for `where.createdBy` directly — fetch followed IDs first
       const followedCreators = await prisma.creatorFollow.findMany({
         where: { followerId: session.user.id },
         select: { creatorId: true },

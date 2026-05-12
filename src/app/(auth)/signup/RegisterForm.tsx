@@ -15,10 +15,14 @@ const RegisterForm = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
+  // useRef keeps the password accessible inside the polling interval without
+  // needing it in the dependency array — avoids stale closure issues
   const savedPassword = useRef("");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Start polling once the user has submitted
+  // Poll every 3 seconds to detect when the user clicks the verification link.
+  // I went with polling rather than a websocket because it's much simpler for a
+  // one-time event and the slight delay is totally fine here.
   useEffect(() => {
     if (!submitted) return;
 
@@ -32,6 +36,7 @@ const RegisterForm = () => {
           clearInterval(pollRef.current!);
           pollRef.current = null;
           setSigningIn(true);
+          // Auto-sign the user in so they don't have to type their password again
           const result = await signIn("credentials", {
             email,
             password: savedPassword.current,
@@ -83,6 +88,7 @@ const RegisterForm = () => {
       });
 
       if (res.ok) {
+        // Save the password in a ref before clearing state — needed for auto-login after verification
         savedPassword.current = password;
         setSubmitted(true);
       } else {

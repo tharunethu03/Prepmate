@@ -18,6 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // force-light keeps auth pages always in light mode regardless of the user's
+    // system theme — didn't want dark mode on login/signup, it looked off
     <div className="force-light bg-background">
       <div className="flex flex-col justify-center-safe items-center h-screen p-10">
         {children}

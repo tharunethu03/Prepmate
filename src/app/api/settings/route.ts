@@ -28,6 +28,7 @@ export async function PATCH(req: Request) {
   const body = await req.json();
   const { showXp, showScore, showAttempts } = body;
 
+  // Spread with undefined check so PATCH is partial — only update the fields sent
   const user = await prisma.user.update({
     where: { id: session.user.id },
     data: {

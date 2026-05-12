@@ -15,7 +15,6 @@ export async function POST(
 
   const userId = session.user.id;
 
-  // ✅ FIX HERE
   const { id: interviewId } = await context.params;
 
   if (!interviewId) {
@@ -25,6 +24,7 @@ export async function POST(
     );
   }
 
+  // Toggle: unsave if already saved, save if not
   const existing = await prisma.savedInterview.findUnique({
     where: {
       userId_interviewId: {

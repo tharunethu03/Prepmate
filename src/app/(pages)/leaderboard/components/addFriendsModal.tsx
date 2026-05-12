@@ -33,23 +33,7 @@ export default function AddFriendsModal({ onFinish }: AddFriendsModalProps) {
   const [searching, setSearching] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null); // userId being actioned
 
-  const handleSearch = async () => {
-    if (query.trim().length < 2) return;
-    setSearching(true);
-    try {
-      const res = await fetch(
-        `/api/users/search?q=${encodeURIComponent(query)}`,
-      );
-      const data = await res.json();
-      setUsers(data.users ?? []);
-    } catch {
-      console.error("Search failed");
-    } finally {
-      setSearching(false);
-    }
-  };
-
-  // Remove the handleSearch function and replace with this
+  // Debounced search — fires 400ms after the user stops typing
   useEffect(() => {
     if (query.trim().length < 2) {
       setUsers([]);
@@ -65,7 +49,7 @@ export default function AddFriendsModal({ onFinish }: AddFriendsModalProps) {
         const data = await res.json();
         setUsers(data.users ?? []);
       } catch {
-        console.error("Search failed");
+        // search failed — show empty results
       } finally {
         setSearching(false);
       }
@@ -90,7 +74,7 @@ export default function AddFriendsModal({ onFinish }: AddFriendsModalProps) {
         );
       }
     } catch {
-      console.error("Failed to send request");
+      // request failed — leave UI unchanged
     } finally {
       setActionLoading(null);
     }
@@ -114,7 +98,7 @@ export default function AddFriendsModal({ onFinish }: AddFriendsModalProps) {
         );
       }
     } catch {
-      console.error("Failed to accept request");
+      // accept failed — leave UI unchanged
     } finally {
       setActionLoading(null);
     }

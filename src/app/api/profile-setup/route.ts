@@ -39,6 +39,8 @@ export async function POST(req: Request) {
     },
   });
 
+  // Return the updated session data so the client can call update() immediately
+  // without needing a separate /api/profile fetch
   return NextResponse.json({
     success: true,
     updatedSessionData: {

@@ -67,6 +67,8 @@ export default function VerifyEmailPage() {
           style={{ objectFit: "contain" }}
         />
       </header>
+      {/* Suspense is required here because useSearchParams() needs it —
+          Next.js throws without a boundary when the hook is used in a page */}
       <Suspense
         fallback={
           <div className="flex-1 flex items-center justify-center">

@@ -111,6 +111,9 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
   const originalAnswerRef = useRef("");
   const thinkingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Dual ref+state helpers — every piece of state that's read inside async
+  // callbacks (TTS, recognition) needs a ref twin, otherwise the callback
+  // captures a stale closure from when it was created
   // ── Ref sync helpers ────────────────────────────────────────
   const updateCurrentIndex = (idx: number) => {
     currentIndexRef.current = idx;
@@ -153,6 +156,8 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
   }, [thinkingDown]);
 
   // ── Navigation guards ───────────────────────────────────────
+  // beforeunload covers tab close / refresh, popstate covers the browser back button —
+  // need both because they're different browser events
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (!allowNavigation) {
@@ -167,6 +172,7 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
   useEffect(() => {
     const handlePopState = () => {
       if (!allowNavigation) {
+        // Push the state back so the back button doesn't actually navigate away
         window.history.pushState(null, "", window.location.href);
         setShowExitModal(true);
       }
@@ -341,6 +347,7 @@ export default function InterviewClient({ interview }: InterviewClientProps) {
       setAllowNavigation(true);
       setSubmitted(true);
 
+      // Show one badge at a time — queue holds the rest, handleBadgeClose pops the next
       if (data.newBadges?.length > 0) {
         const [first, ...rest] = data.newBadges;
         setCurrentBadge(first);

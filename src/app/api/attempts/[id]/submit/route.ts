@@ -81,6 +81,7 @@ Score 0 if completely wrong/empty, 100 if perfect. Be accurate and specific in f
   }
 }
 
+// XP tiers — higher scores get meaningfully more XP to incentivise quality answers
 function calculateXp(score: number): number {
   if (score >= 90) return 150;
   if (score >= 75) return 120;
@@ -207,6 +208,7 @@ export async function POST(
 
     const currentXp = currentUser?.xp ?? 0;
     const newXp = currentXp + xpEarned;
+    // Level formula: inverse of level² × 100 — so level 2 needs 100 XP, level 3 needs 400, etc.
     const newLevel = Math.floor(Math.sqrt(newXp / 100)) + 1;
 
     await tx.user.update({
@@ -214,6 +216,7 @@ export async function POST(
       data: { xp: newXp, level: newLevel },
     });
 
+    // If this attempt was from a challenge, mark it completed
     if (attempt.challengeId) {
       await tx.challenge.update({
         where: { id: attempt.challengeId },
@@ -226,6 +229,8 @@ export async function POST(
 
   await checkAndAwardBadges(session.user.id);
 
+  // Fetch badges earned within the last 10 seconds — these are the ones
+  // just awarded from this submission, shown as modals on the results page
   const userBadges = await prisma.userBadge.findMany({
     where: {
       userId: session.user.id,

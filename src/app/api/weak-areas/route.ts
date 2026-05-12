@@ -136,6 +136,7 @@ export async function GET() {
     }
   }
 
+  // Require at least 5 responses before showing any data — not enough to be meaningful below that
   const MIN_RESPONSES = 5;
   const WEAK_THRESHOLD = 65;
   const MIN_TOPIC_COUNT = 2;
@@ -168,6 +169,7 @@ export async function GET() {
           firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
         const secondAvg =
           secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+        // 8-point swing feels meaningful without being too sensitive
         if (secondAvg - firstAvg > 8) trend = "improving";
         else if (firstAvg - secondAvg > 8) trend = "declining";
       }

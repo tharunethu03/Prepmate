@@ -58,6 +58,7 @@ export async function POST(req: Request) {
   return new Response(audioBuffer, {
     headers: {
       "Content-Type": "audio/mpeg",
+      // no-store prevents the browser from caching audio blobs across requests
       "Cache-Control": "no-store",
     },
   });

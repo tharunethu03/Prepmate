@@ -7,6 +7,8 @@ import { signIn } from "next-auth/react";
 function VerifiedContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // called.current prevents this running twice in React Strict Mode (which
+  // mounts effects twice in dev) — would otherwise try to consume the token twice
   const called = useRef(false);
 
   useEffect(() => {
@@ -20,6 +22,7 @@ function VerifiedContent() {
       return;
     }
 
+    // Use the one-time autoLoginToken to sign in without a password
     signIn("credentials", { autoLoginToken: token, redirect: false }).then(
       (result) => {
         if (result?.ok) {

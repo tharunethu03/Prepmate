@@ -86,9 +86,10 @@ export default function LeaderboardPage() {
           level: profileData.level,
         };
 
+        // Prepend myself to the friends list so I always appear on my own leaderboard
         setFriends([me, ...fList].sort((a, b) => b.xp - a.xp));
       } catch {
-        console.error("Failed to fetch leaderboard");
+        // fetch failed — just show empty state
       } finally {
         setLoading(false);
       }

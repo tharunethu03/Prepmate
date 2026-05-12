@@ -109,6 +109,7 @@ export default function ChallengesPage() {
   const [showSendModal, setShowSendModal] = useState(false);
   const [decliningId, setDecliningId] = useState<string | null>(null);
 
+  // Defined as a named function so I can call it again after sending a challenge
   const fetchChallenges = async () => {
     try {
       const res = await fetch("/api/challenges");
@@ -116,7 +117,7 @@ export default function ChallengesPage() {
       setReceived(data.received ?? []);
       setSent(data.sent ?? []);
     } catch {
-      console.error("Failed to fetch challenges");
+      // fetch failed — show empty state
     } finally {
       setLoading(false);
     }
@@ -134,11 +135,12 @@ export default function ChallengesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "decline" }),
       });
+      // Optimistically update status so UI reflects instantly without a refetch
       setReceived((prev) =>
         prev.map((c) => (c.id === id ? { ...c, status: "DECLINED" } : c)),
       );
     } catch {
-      console.error("Failed to decline");
+      // decline failed — leave existing status
     } finally {
       setDecliningId(null);
     }

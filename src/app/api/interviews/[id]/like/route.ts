@@ -22,6 +22,7 @@ export async function POST(
       { status: 400 },
     );
 
+  // Toggle: unlike if already liked, like if not
   const existing = await prisma.like.findFirst({
     where: { userId, interviewId },
   });

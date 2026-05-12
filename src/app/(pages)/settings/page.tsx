@@ -34,6 +34,8 @@ const SettingsPage = () => {
   }, []);
 
   const updatePrivacy = async (key: keyof PrivacySettings, value: boolean) => {
+    // Optimistic update — apply the change immediately so the toggle feels instant,
+    // then revert if the API call fails
     const updated = { ...privacy, [key]: value };
     setPrivacy(updated);
     setSaving(true);

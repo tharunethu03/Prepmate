@@ -41,12 +41,14 @@ export async function PATCH(
   }
 
   if (action === "accept") {
+    // Sort IDs for the canonical friendship key (same logic as when creating requests)
     const [friendAId, friendBId] = [
       request.senderId,
       request.receiverId,
     ].sort();
 
-    // Create friendship and update friend request
+    // $transaction keeps the request update and friendship creation atomic —
+    // if either fails, neither goes through
     await prisma.$transaction([
       prisma.friendRequest.update({
         where: { id: requestId },
@@ -62,6 +64,8 @@ export async function PATCH(
     return NextResponse.json({ status: "accepted" });
   }
 
+  // NOTE: badge checks only run here for invalid actions — should be moved
+  // inside the accept block above if badges are meant to fire on friend accept
   await checkAndAwardBadges(request.senderId);
   await checkAndAwardBadges(request.receiverId);
 

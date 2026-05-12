@@ -129,6 +129,8 @@ function getPageName(pathname: string) {
   return "Admin";
 }
 
+// useSyncExternalStore is the safe way to detect client-side rendering —
+// avoids hydration mismatches from typeof window checks
 function useIsClient() {
   return useSyncExternalStore(
     () => () => {},
@@ -150,6 +152,8 @@ export default function AdminLayout({
   const isClient = useIsClient();
   const isDark = isClient && theme === "dark";
 
+  // Client-side guard in case someone navigates here directly — server middleware
+  // should catch it first but this is a second line of defence
   useEffect(() => {
     if (status === "loading") return;
     if (!session || session.user.role !== "ADMIN") {

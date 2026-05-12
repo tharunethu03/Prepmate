@@ -12,6 +12,7 @@ function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  // Same Strict Mode guard as verified/page.tsx — prevents double redirect
   const validated = useRef(false);
 
   const [newPassword, setNewPassword] = useState("");
@@ -59,6 +60,8 @@ function ResetPasswordContent() {
       setStatus("success");
       toast.success("Password updated! Signing you out…");
 
+      // Sign out so the new password takes effect — the old JWT still has
+      // the old credentials baked in, sign-out forces a fresh login
       setTimeout(() => {
         signOut({ callbackUrl: "/login" });
       }, 1500);

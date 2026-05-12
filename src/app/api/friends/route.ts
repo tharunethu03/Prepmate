@@ -63,7 +63,7 @@ export async function POST(req: Request) {
   if (receiverId === senderId)
     return NextResponse.json({ error: "Cannot add yourself" }, { status: 400 });
 
-  // Check already friends
+  // Sort IDs to get a canonical key — ensures (A,B) and (B,A) are the same friendship
   const [a, b] = [senderId, receiverId].sort();
   const alreadyFriends = await prisma.friendship.findUnique({
     where: { friendAId_friendBId: { friendAId: a, friendBId: b } },

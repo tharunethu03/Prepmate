@@ -115,7 +115,8 @@ export async function GET(req: Request) {
     ? user.interviews.filter((i) => i.visibility === "private")
     : [];
 
-  // XP progress
+  // XP progress — inverse of the level formula used in submit/route.ts
+  // level n starts at (n-1)² × 100 XP and ends at n² × 100 XP
   const currentLevelXp = Math.pow((user.level ?? 1) - 1, 2) * 100;
   const nextLevelXp = Math.pow(user.level ?? 1, 2) * 100;
   const xpIntoLevel = (user.xp ?? 0) - currentLevelXp;

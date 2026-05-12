@@ -10,8 +10,8 @@ type InterviewPageProps = {
 
 export default async function InterviewPage({ params }: InterviewPageProps) {
   const { id } = await params;
-  console.log("Interview ID:", id);
 
+  // Fetch from our own API server-side — cache: no-store so we always get the latest version
   const res = await fetch(`${process.env.NEXTAUTH_URL}/api/interviews/${id}`, {
     cache: "no-store",
   });

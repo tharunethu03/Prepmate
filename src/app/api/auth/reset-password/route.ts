@@ -30,6 +30,7 @@ export async function POST(req: Request) {
 
   const hashedPassword = await hash(newPassword, 12);
 
+  // Clear the token after use so it can't be replayed
   await prisma.user.update({
     where: { id: user.id },
     data: {

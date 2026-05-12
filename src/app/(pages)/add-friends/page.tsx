@@ -40,7 +40,10 @@ export default function AddFriendsPage() {
   const [searching, setSearching] = useState(false);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [pendingReceived, setPendingReceived] = useState<PendingRequest[]>([]);
+  // Set<string> lets me track multiple concurrent loading states (e.g. two buttons
+  // clicked quickly) without one overwriting the other
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
+  // useRef for the debounce timer so updating it doesn't trigger a re-render
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load friends and pending requests on mount

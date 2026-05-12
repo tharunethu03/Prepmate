@@ -40,6 +40,7 @@ const SORT_OPTIONS = [
 const ExplorePage = () => {
   const searchParams = useSearchParams();
 
+  // Dashboard quick-links pass query params like ?trending=true to pre-set the sort filter
   const initialSort =
     searchParams.get("trending") === "true"
       ? "trending"
@@ -73,7 +74,8 @@ const ExplorePage = () => {
   const [loadingCreators, setLoadingCreators] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  // Debounce search
+  // Separate debounce effects for search and topic so they don't interfere —
+  // each updates its own filter key without resetting the other
   useEffect(() => {
     const timeout = setTimeout(() => {
       setFilters((prev) => ({ ...prev, search: searchValue }));
@@ -81,7 +83,6 @@ const ExplorePage = () => {
     return () => clearTimeout(timeout);
   }, [searchValue]);
 
-  // Debounce topic
   useEffect(() => {
     const timeout = setTimeout(() => {
       setFilters((prev) => ({ ...prev, topic: topicValue }));
@@ -89,6 +90,8 @@ const ExplorePage = () => {
     return () => clearTimeout(timeout);
   }, [topicValue]);
 
+  // buildUrl centralises all filter-to-query-string logic so the main fetch
+  // and the load-more call both go through the same place
   const buildUrl = (f: Filters, p: number) => {
     const params = new URLSearchParams();
     params.set("visibility", "public");

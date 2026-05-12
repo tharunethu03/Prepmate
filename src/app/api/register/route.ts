@@ -19,7 +19,9 @@ export async function POST(req: Request) {
 
     const hashed = await hash(password, 12);
 
-    // Remove any previous pending registration for this email (allow retry)
+    // Delete any previous pending registration first — lets users retry if the email expired
+    // without hitting a unique constraint. We store in pendingRegistration (not user)
+    // so unverified accounts never pollute the main users table.
     await prisma.pendingRegistration.deleteMany({ where: { email } });
 
     const token = crypto.randomBytes(32).toString("hex");

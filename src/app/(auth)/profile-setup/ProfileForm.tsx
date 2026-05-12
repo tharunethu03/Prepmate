@@ -30,6 +30,7 @@ const ProfileForm = () => {
   const [error, setError] = useState<string | null>(null);
 
   const isBaseInvalid = !name || !field || !roleTitle || !accountType;
+  // Creators must provide LinkedIn + GitHub — these are checked during admin review
   const isCreatorInvalid =
     accountType === "creator" &&
     (!name ||
@@ -74,6 +75,8 @@ const ProfileForm = () => {
       if (res.ok) {
         const data = await res.json();
         if (data.success) {
+          // Call update() to sync the JWT with the new profile data immediately —
+          // without this the session would still show the old values until next sign-in
           await update({
             name: data.updatedSessionData.name,
             role: data.updatedSessionData.role,
