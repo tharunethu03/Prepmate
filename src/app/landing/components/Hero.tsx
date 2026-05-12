@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { FadeIn } from "./FadeIn";
 import { useDarkMode } from "./useDarkMode";
 
@@ -150,24 +150,24 @@ export function Hero() {
           </p>
         </FadeIn>
 
-        {/* Hero screenshot placeholder */}
+        {/* Hero screenshot */}
         <FadeIn delay={360}>
-          <div className="mt-16 mx-auto max-w-5xl rounded-[22px] border-2 border-border overflow-hidden shadow-2xl bg-foreground">
-            <div className="h-8 bg-background border-b border-border flex items-center px-4 gap-2">
+          <div className="mt-16 mx-auto max-w-5xl rounded-[22px] border-2 border-border overflow-hidden shadow-2xl">
+            {/* Browser chrome */}
+            <div className="h-8 bg-foreground border-b border-border flex items-center px-4 gap-2 shrink-0">
               <div className="h-3 w-3 rounded-full bg-error/50" />
               <div className="h-3 w-3 rounded-full bg-warning/50" />
               <div className="h-3 w-3 rounded-full bg-success/50" />
               <div className="flex-1 mx-4 h-5 bg-border rounded-full" />
             </div>
-            <div className="aspect-[16/9] bg-background flex flex-col items-center justify-center gap-3 text-tertiary">
-              <div className="h-16 w-16 rounded-[16px] bg-accent/10 border border-accent/20 flex items-center justify-center">
-                <Zap size={28} className="text-accent" />
-              </div>
-              <p className="text-sm font-medium text-secondary">
-                Dashboard screenshot
-              </p>
-              <p className="text-xs">Replace with your app screenshot</p>
-            </div>
+            <Image
+              src={isDark ? "/landing/screenshots/dashboard-dark.png" : "/landing/screenshots/dashboard.png"}
+              alt="Prepmate Dashboard"
+              width={1280}
+              height={720}
+              className="w-full h-auto"
+              priority
+            />
           </div>
         </FadeIn>
       </div>

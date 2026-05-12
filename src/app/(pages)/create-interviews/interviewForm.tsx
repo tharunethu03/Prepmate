@@ -135,7 +135,7 @@ export default function InterviewForm({
         } else {
           setGenerateError("Failed to generate questions. Please try again.");
         }
-        throw new Error("Generation failed");
+        return;
       }
 
       const { questions: generated } = await res.json();
@@ -154,7 +154,7 @@ export default function InterviewForm({
           }),
         ),
       );
-    } catch (err) {
+    } catch {
       setGenerateError("Failed to generate questions. Please try again.");
     } finally {
       setIsGenerating(false);
@@ -200,7 +200,7 @@ export default function InterviewForm({
         } else {
           setEnhanceError("Failed to generate answers. Please try again.");
         }
-        throw new Error("Enhancement failed");
+        return;
       }
 
       const { questions: enhanced } = await res.json();

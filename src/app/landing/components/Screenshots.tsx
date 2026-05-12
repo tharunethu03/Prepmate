@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { Mic, Sparkles, BarChart3, Trophy } from "lucide-react";
 import { FadeIn } from "./FadeIn";
 import { useDarkMode } from "./useDarkMode";
 
@@ -9,35 +8,32 @@ const screenshots = [
   {
     label: "Interview session",
     desc: "Live voice interview with Alex",
-    icon: Mic,
-    color: "text-accent",
-    bg: "bg-accent/10 border-accent/20",
+    src: "/landing/screenshots/interview-session.png",
+    srcDark: "/landing/screenshots/interview-session-dark.png",
   },
   {
     label: "Create an interview",
     desc: "AI generates questions instantly",
-    icon: Sparkles,
-    color: "text-warning",
-    bg: "bg-warning/10 border-warning/20",
+    src: "/landing/screenshots/create-interview.png",
+    srcDark: "/landing/screenshots/create-interview-dark.png",
   },
   {
     label: "Results & feedback",
     desc: "Per-question score breakdown",
-    icon: BarChart3,
-    color: "text-success",
-    bg: "bg-success/10 border-success/20",
+    src: "/landing/screenshots/result-feedback.png",
+    srcDark: "/landing/screenshots/result-feedback-dark.png",
   },
   {
     label: "Leaderboard",
     desc: "Compete with friends",
-    icon: Trophy,
-    color: "text-error",
-    bg: "bg-error/10 border-error/20",
+    src: "/landing/screenshots/leaderboard.png",
+    srcDark: "/landing/screenshots/leaderboard-dark.png",
   },
 ];
 
 export function Screenshots() {
   const isDark = useDarkMode();
+
   return (
     <section
       id="screenshots"
@@ -59,6 +55,7 @@ export function Screenshots() {
           </div>
         </FadeIn>
       </div>
+
       <div className="max-w-6xl mx-auto">
         <FadeIn>
           <div className="text-center mb-14">
@@ -78,18 +75,30 @@ export function Screenshots() {
         <div className="grid md:grid-cols-2 gap-5">
           {screenshots.map((s, i) => (
             <FadeIn key={s.label} delay={i * 90} direction="up">
-              <div className="rounded-[20px] border border-border bg-background overflow-hidden">
-                <div className="aspect-[16/9] flex flex-col items-center justify-center gap-3">
-                  <div
-                    className={`h-14 w-14 rounded-[14px] border flex items-center justify-center ${s.bg}`}
-                  >
-                    <s.icon size={26} className={s.color} />
+              <div className="rounded-[20px] border border-border bg-background overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div className="relative">
+                  <Image
+                    src={isDark ? s.srcDark : s.src}
+                    alt={s.label}
+                    width={800}
+                    height={450}
+                    className="w-full h-auto"
+                  />
+                  {/* Prepmate watermark */}
+                  <div className="absolute bottom-1.5 left-1.5">
+                    <Image
+                      src={isDark ? "/logo-dark.png" : "/logo.png"}
+                      alt="Prepmate"
+                      width={72}
+                      height={18}
+                      className="object-contain opacity-80"
+                      style={{ imageRendering: "pixelated" }}
+                    />
                   </div>
-                  <p className={`text-sm font-semibold ${s.color}`}>{s.label}</p>
-                  <p className="text-xs text-tertiary">{s.desc}</p>
-                  <p className="text-[11px] text-muted border border-border rounded-full px-3 py-1 mt-1">
-                    Replace with screenshot
-                  </p>
+                </div>
+                <div className="px-4 py-3 border-t border-border">
+                  <p className="text-sm font-semibold text-primary">{s.label}</p>
+                  <p className="text-xs text-tertiary mt-0.5">{s.desc}</p>
                 </div>
               </div>
             </FadeIn>

@@ -173,65 +173,69 @@ export default function PublicProfilePage() {
                 </span>
               </div>
             )}
-            <div className="flex items-center gap-1 text-sm">
-              <BookOpen size={14} className="text-accent" />
-              <span className="font-semibold">
-                {profile.publicInterviews.length} public interviews
-              </span>
-            </div>
+            {profile.role !== "STUDENT" && (
+              <div className="flex items-center gap-1 text-sm">
+                <BookOpen size={14} className="text-accent" />
+                <span className="font-semibold">
+                  {profile.publicInterviews.length} public interviews
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Two column layout */}
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left — public interviews */}
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold mb-4">Public Interviews</h3>
-          {profile.publicInterviews.length === 0 ? (
-            <div className="flex flex-col items-center py-10 gap-2 text-secondary">
-              <BookOpen size={32} className="text-border" />
-              <p className="text-sm">No public interviews yet</p>
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-x-3 gap-y-5">
-              {profile.publicInterviews.map((i) => (
-                <InterviewModal
-                  key={i.id}
-                  interview={{
-                    ...i,
-                    description: "",
-                    createdBy: profile.id,
-                    isLiked: false,
-                    isSaved: false,
-                    likes: i._count.likes,
-                    attemptCount: i._count.attempts,
-                    recentAttemptees: [],
-                    questions: [],
-                    interviewType: i.interviewType as
-                      | "technical"
-                      | "behavioral"
-                      | "hr"
-                      | "mixed",
-                    creator: {
-                      id: profile.id,
-                      name: profile.name,
-                      avatar: profile.avatar,
-                    },
-                  }}
-                  onPreview={() =>
-                    fetch(`/api/interviews/${i.id}`)
-                      .then((r) => r.json())
-                      .then(setSelectedInterview)
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Left — public interviews (creators only) */}
+        {profile.role !== "STUDENT" && (
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold mb-4">Public Interviews</h3>
+            {profile.publicInterviews.length === 0 ? (
+              <div className="flex flex-col items-center py-10 gap-2 text-secondary">
+                <BookOpen size={32} className="text-border" />
+                <p className="text-sm">No public interviews yet</p>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-x-3 gap-y-5">
+                {profile.publicInterviews.map((i) => (
+                  <InterviewModal
+                    key={i.id}
+                    interview={{
+                      ...i,
+                      description: "",
+                      createdBy: profile.id,
+                      isLiked: false,
+                      isSaved: false,
+                      likes: i._count.likes,
+                      attemptCount: i._count.attempts,
+                      recentAttemptees: [],
+                      questions: [],
+                      interviewType: i.interviewType as
+                        | "technical"
+                        | "behavioral"
+                        | "hr"
+                        | "mixed",
+                      creator: {
+                        id: profile.id,
+                        name: profile.name,
+                        avatar: profile.avatar,
+                      },
+                    }}
+                    onPreview={() =>
+                      fetch(`/api/interviews/${i.id}`)
+                        .then((r) => r.json())
+                        .then(setSelectedInterview)
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Right — badges */}
-        <div className="lg:w-72 shrink-0">
+        {/* Right — badges (full width for students) */}
+        <div className={profile.role === "STUDENT" ? "w-full" : "lg:w-72 shrink-0"}>
           <div className="bg-foreground border border-border rounded-[22px] p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-sm">Badges</h3>

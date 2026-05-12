@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { CheckCircle, BarChart3 } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { FadeIn } from "./FadeIn";
 import { useDarkMode } from "./useDarkMode";
 
@@ -63,22 +63,32 @@ export function Benefits() {
             </div>
           </FadeIn>
 
-          {/* Right — placeholder screenshot */}
+          {/* Right — results screenshot */}
           <FadeIn direction="left" delay={100}>
-            <div className="rounded-[22px] border border-border bg-foreground overflow-hidden shadow-lg">
-              <div className="h-8 bg-background border-b border-border flex items-center px-4 gap-2">
+            <div className="rounded-[22px] border border-border overflow-hidden shadow-lg">
+              <div className="h-8 bg-foreground border-b border-border flex items-center px-4 gap-2">
                 <div className="h-3 w-3 rounded-full bg-error/50" />
                 <div className="h-3 w-3 rounded-full bg-warning/50" />
                 <div className="h-3 w-3 rounded-full bg-success/50" />
               </div>
-              <div className="aspect-[4/3] bg-background flex flex-col items-center justify-center gap-3 text-tertiary">
-                <div className="h-14 w-14 rounded-[14px] bg-success/10 border border-success/20 flex items-center justify-center">
-                  <BarChart3 size={26} className="text-success" />
+              <div className="relative">
+                <Image
+                  src={isDark ? "/landing/screenshots/result-feedback-dark.png" : "/landing/screenshots/result-feedback.png"}
+                  alt="Results & Feedback"
+                  width={800}
+                  height={600}
+                  className="w-full h-auto"
+                />
+                <div className="absolute bottom-1.5 left-1.5">
+                  <Image
+                    src={isDark ? "/logo-dark.png" : "/logo.png"}
+                    alt="Prepmate"
+                    width={72}
+                    height={18}
+                    className="object-contain opacity-80"
+                    style={{ imageRendering: "pixelated" }}
+                  />
                 </div>
-                <p className="text-sm font-medium text-secondary">
-                  Results page screenshot
-                </p>
-                <p className="text-xs">Replace with your app screenshot</p>
               </div>
             </div>
           </FadeIn>

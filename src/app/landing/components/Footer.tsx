@@ -7,7 +7,6 @@ import { useDarkMode } from "./useDarkMode";
 
 const companyLinks: { label: string; href: string }[] = [
   { label: "About", href: "/about" },
-  { label: "Blog", href: "#" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -78,14 +77,18 @@ export function Footer() {
               Legal
             </p>
             <ul className="flex flex-col gap-2">
-              {["Privacy Policy", "Terms of Service", "Cookie Policy"].map((l) => (
-                <li key={l}>
-                  <a
-                    href="#"
+              {[
+                { label: "Privacy Policy", href: "/privacy" },
+                { label: "Terms of Service", href: "/terms" },
+                { label: "Cookie Policy", href: "/cookies" },
+              ].map(({ label, href }) => (
+                <li key={label}>
+                  <Link
+                    href={href}
                     className="text-xs text-tertiary hover:text-primary transition-colors"
                   >
-                    {l}
-                  </a>
+                    {label}
+                  </Link>
                 </li>
               ))}
             </ul>

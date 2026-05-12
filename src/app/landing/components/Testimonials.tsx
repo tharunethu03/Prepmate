@@ -7,19 +7,19 @@ const testimonials = [
   {
     name: "Sarah K.",
     role: "Frontend Engineer",
-    text: "I used Prepmate for two weeks before my Google interview. The AI feedback was incredibly specific — it told me exactly what concepts I was missing.",
+    text: "I used Prepmate for two weeks before my Google interview. The AI feedback was incredibly specific it told me exactly what concepts I was missing.",
     stars: 5,
   },
   {
     name: "James O.",
     role: "Data Scientist",
-    text: "The voice interview mode is a game changer. Being able to practice speaking out loud and get real-time reactions made me way more confident.",
+    text: "The voice interview mode is a game changer. Being able to practice speaking out loud and get realtime reactions made me way more confident.",
     stars: 5,
   },
   {
     name: "Priya M.",
     role: "Product Manager",
-    text: "I love that it works for behavioral interviews too. The gamification keeps me coming back every day — already level 8!",
+    text: "I love that it works for behavioral interviews too. The gamification keeps me coming back every day already level 8!",
     stars: 5,
   },
 ];

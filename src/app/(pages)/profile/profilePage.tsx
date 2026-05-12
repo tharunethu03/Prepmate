@@ -264,19 +264,21 @@ export default function ProfilePage() {
                   Recent Attempts
                 </button>
               )}
-              <button
-                onClick={() => setTab("public")}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  tab === "public"
-                    ? "border-accent text-accent"
-                    : "border-transparent text-secondary"
-                }`}
-              >
-                Public
-                <span className="ml-1 text-xs text-tertiary">
-                  ({profile.publicInterviews.length})
-                </span>
-              </button>
+              {profile.role !== "STUDENT" && (
+                <button
+                  onClick={() => setTab("public")}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    tab === "public"
+                      ? "border-accent text-accent"
+                      : "border-transparent text-secondary"
+                  }`}
+                >
+                  Public
+                  <span className="ml-1 text-xs text-tertiary">
+                    ({profile.publicInterviews.length})
+                  </span>
+                </button>
+              )}
               {profile.isOwnProfile && (
                 <button
                   onClick={() => setTab("private")}
@@ -292,7 +294,7 @@ export default function ProfilePage() {
                   </span>
                 </button>
               )}
-              {profile.isOwnProfile && (
+              {profile.isOwnProfile && profile.role !== "STUDENT" && (
                 <button
                   onClick={() => setTab("creator")}
                   className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
