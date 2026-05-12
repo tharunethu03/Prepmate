@@ -33,7 +33,24 @@ export default function AddFriendsModal({ onFinish }: AddFriendsModalProps) {
   const [searching, setSearching] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null); // userId being actioned
 
-  // Debounced search — fires 400ms after the user stops typing
+  // Immediate search — called by the Search button and Enter key press
+  const handleSearch = async () => {
+    if (query.trim().length < 2) return;
+    setSearching(true);
+    try {
+      const res = await fetch(
+        `/api/users/search?q=${encodeURIComponent(query)}`,
+      );
+      const data = await res.json();
+      setUsers(data.users ?? []);
+    } catch {
+      // search failed — show empty results
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // Debounced search — fires 400ms after the user stops typing without clicking Search
   useEffect(() => {
     if (query.trim().length < 2) {
       setUsers([]);
