@@ -235,6 +235,7 @@ export default function AddFriendsModal({ onFinish }: AddFriendsModalProps) {
                     width={45}
                     height={45}
                     className="rounded-full"
+                    sizes="45px"
                   />
                   <div>
                     <p className="font-semibold text-sm">

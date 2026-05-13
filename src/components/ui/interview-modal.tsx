@@ -131,6 +131,7 @@ const InterviewModal = ({
               height={25}
               alt="AVATAR"
               className="rounded-full"
+              sizes="25px"
             />
             <span className="text-foreground font-bold truncate max-w-[100px] md:max-w-[120px]">
               {interview.creator?.name || "Unknown"}

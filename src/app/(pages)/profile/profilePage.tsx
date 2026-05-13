@@ -133,6 +133,7 @@ export default function ProfilePage() {
           height={90}
           alt="avatar"
           className="rounded-full ring-2 ring-accent border-3 border-foreground shrink-0 w-[90px] h-[90px] object-cover"
+          sizes="90px"
         />
         <div className="flex-1 flex flex-col gap-3">
           <div className="flex items-start justify-between flex-wrap gap-2">

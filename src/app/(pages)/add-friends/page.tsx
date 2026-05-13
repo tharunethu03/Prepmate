@@ -216,6 +216,7 @@ export default function AddFriendsPage() {
                   height={40}
                   alt="avatar"
                   className="rounded-full shrink-0"
+                  sizes="40px"
                 />
                 <p className="text-primary font-medium flex-1 text-sm truncate">
                   {req.sender.name ?? "Unknown"}
@@ -263,6 +264,7 @@ export default function AddFriendsPage() {
                   height={40}
                   alt="avatar"
                   className="rounded-full shrink-0"
+                  sizes="40px"
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-primary font-medium text-sm truncate">

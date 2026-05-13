@@ -30,7 +30,7 @@ const page = () => {
           height={500}
           className="object-contain hidden md:block"
           priority
-          unoptimized
+          sizes="600px"
         />
       </div>
     </div>

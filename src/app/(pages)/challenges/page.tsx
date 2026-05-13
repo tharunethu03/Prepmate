@@ -231,6 +231,7 @@ export default function ChallengesPage() {
                       alt="avatar"
                       className="rounded-full cursor-pointer"
                       onClick={() => router.push(`/profile/${c.challenger.id}`)}
+                      sizes="40px"
                     />
                     <div>
                       <p className="text-sm font-semibold">
@@ -349,6 +350,7 @@ export default function ChallengesPage() {
                       alt="avatar"
                       className="rounded-full cursor-pointer"
                       onClick={() => router.push(`/profile/${c.challenged.id}`)}
+                      sizes="40px"
                     />
                     <div>
                       <p className="text-sm font-semibold">

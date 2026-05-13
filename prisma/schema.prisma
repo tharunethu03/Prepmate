@@ -135,6 +135,14 @@ model Interview {
 
   createdAt DateTime   @default(now())
   questions Question[]
+
+  // Indexes on the fields we filter/sort by most — without these every
+  // query does a full collection scan on Atlas
+  @@index([visibility])
+  @@index([createdBy])
+  @@index([visibility, createdAt])
+  @@index([visibility, difficulty])
+  @@index([visibility, creatorField])
 }
 
 // ─────────────────────────────────────────────
@@ -212,6 +220,8 @@ model Like {
   interview Interview @relation(fields: [interviewId], references: [id])
 
   @@unique([userId, interviewId])
+  // Counting likes per interview needs interviewId indexed independently
+  @@index([interviewId])
 }
 
 model SavedInterview {
@@ -223,6 +233,8 @@ model SavedInterview {
   interview Interview @relation(fields: [interviewId], references: [id])
 
   @@unique([userId, interviewId])
+  // The "saved=true" filter queries by userId alone — needs its own index
+  @@index([userId])
 }
 
 // ─────────────────────────────────────────────
@@ -262,6 +274,9 @@ model Friendship {
   createdAt DateTime @default(now())
 
   @@unique([friendAId, friendBId])
+  // The OR-filter { friendAId: id } | { friendBId: id } needs friendBId indexed
+  // separately — the compound unique only speeds up friendAId lookups
+  @@index([friendBId])
 }
 
 // ─────────────────────────────────────────────
@@ -332,6 +347,8 @@ model UserBadge {
   earnedAt DateTime @default(now())
 
   @@unique([userId, badgeId]) // each badge earned once per user
+  // The submit route queries { userId, earnedAt >= now-10s } to find newly awarded badges
+  @@index([userId, earnedAt])
 }
 
 model CreatorFollow {

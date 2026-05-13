@@ -54,6 +54,7 @@ export default function FriendsLeaderboard({
                 height={36}
                 alt="avatar"
                 className="rounded-full"
+                sizes="36px"
               />
               <div className="flex-1">
                 <p className="text-sm font-semibold truncate">

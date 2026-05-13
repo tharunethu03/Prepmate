@@ -47,14 +47,19 @@ export async function awardBadge(userId: string, badgeKey: string) {
 }
 
 export async function checkAndAwardBadges(userId: string) {
+  // Fetch everything we need in one parallel batch — the original code fired
+  // allAttempts and resumeAttempt as separate sequential queries after the
+  // Promise.all, which added two extra Atlas round trips every time
   const [
     user,
-    attempts,
+    attemptCount,
     friends,
     challengesSent,
     challengesReceived,
-    interviews,
+    interviewCount,
     likes,
+    allAttempts,
+    resumeAttempt,
   ] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
@@ -66,60 +71,72 @@ export async function checkAndAwardBadges(userId: string) {
     }),
     prisma.challenge.count({ where: { challengerId: userId } }),
     prisma.challenge.count({
-      where: {
-        challengedId: userId,
-        status: { in: ["ACCEPTED", "COMPLETED"] },
-      },
+      where: { challengedId: userId, status: { in: ["ACCEPTED", "COMPLETED"] } },
     }),
     prisma.interview.count({ where: { createdBy: userId } }),
     prisma.like.count({ where: { interview: { createdBy: userId } } }),
+    prisma.interviewAttempt.findMany({
+      where: { userId, status: "SUBMITTED" },
+      select: { score: true },
+    }),
+    prisma.interviewAttempt.findFirst({
+      where: { userId, status: "SUBMITTED", interview: { source: "resume" } },
+      select: { id: true },
+    }),
   ]);
 
-  // Activity badges
-  if (attempts >= 1) await awardBadge(userId, "FIRST_INTERVIEW");
-  if (attempts >= 5) await awardBadge(userId, "FIVE_INTERVIEWS");
-  if (attempts >= 25) await awardBadge(userId, "TWENTY_FIVE_INTERVIEWS");
-  if (attempts >= 100) await awardBadge(userId, "HUNDRED_INTERVIEWS");
-
-  // Score badges
-  const allAttempts = await prisma.interviewAttempt.findMany({
-    where: { userId, status: "SUBMITTED" },
-    select: { score: true },
-  });
-  if (allAttempts.some((a) => (a.score ?? 0) >= 80))
-    await awardBadge(userId, "SCORE_80");
-  if (allAttempts.some((a) => (a.score ?? 0) >= 100))
-    await awardBadge(userId, "SCORE_100");
-
-  // Social badges
-  if (friends >= 1) await awardBadge(userId, "FIRST_FRIEND");
-  if (friends >= 5) await awardBadge(userId, "FIVE_FRIENDS");
-  if (challengesSent >= 1) await awardBadge(userId, "FIRST_CHALLENGE_SENT");
-  if (challengesReceived >= 1)
-    await awardBadge(userId, "FIRST_CHALLENGE_ACCEPTED");
-
-  // Creator badges
-  if (interviews >= 1) await awardBadge(userId, "FIRST_INTERVIEW_CREATED");
-  if (interviews >= 10) await awardBadge(userId, "TEN_INTERVIEWS_CREATED");
-  if (likes >= 10) await awardBadge(userId, "TEN_LIKES");
-
-  // Profile badge
-  if (user?.profileCompleted) await awardBadge(userId, "PROFILE_COMPLETE");
-
-  // Level badges
   const level = user?.level ?? 1;
-  if (level >= 5) await awardBadge(userId, "LEVEL_5");
-  if (level >= 10) await awardBadge(userId, "LEVEL_10");
-  if (level >= 20) await awardBadge(userId, "LEVEL_20");
+  const maxScore = allAttempts.reduce(
+    (max, a) => Math.max(max, a.score ?? 0),
+    0,
+  );
 
-  // Resume interview badge
-  const resumeAttempt = await prisma.interviewAttempt.findFirst({
-    where: {
-      userId,
-      status: "SUBMITTED",
-      interview: { source: "resume" },
-    },
-    select: { id: true },
+  // Determine which badge keys this user qualifies for right now
+  const eligibleKeys: string[] = [];
+  if (attemptCount >= 1) eligibleKeys.push("FIRST_INTERVIEW");
+  if (attemptCount >= 5) eligibleKeys.push("FIVE_INTERVIEWS");
+  if (attemptCount >= 25) eligibleKeys.push("TWENTY_FIVE_INTERVIEWS");
+  if (attemptCount >= 100) eligibleKeys.push("HUNDRED_INTERVIEWS");
+  if (maxScore >= 80) eligibleKeys.push("SCORE_80");
+  if (maxScore >= 100) eligibleKeys.push("SCORE_100");
+  if (friends >= 1) eligibleKeys.push("FIRST_FRIEND");
+  if (friends >= 5) eligibleKeys.push("FIVE_FRIENDS");
+  if (challengesSent >= 1) eligibleKeys.push("FIRST_CHALLENGE_SENT");
+  if (challengesReceived >= 1) eligibleKeys.push("FIRST_CHALLENGE_ACCEPTED");
+  if (interviewCount >= 1) eligibleKeys.push("FIRST_INTERVIEW_CREATED");
+  if (interviewCount >= 10) eligibleKeys.push("TEN_INTERVIEWS_CREATED");
+  if (likes >= 10) eligibleKeys.push("TEN_LIKES");
+  if (user?.profileCompleted) eligibleKeys.push("PROFILE_COMPLETE");
+  if (level >= 5) eligibleKeys.push("LEVEL_5");
+  if (level >= 10) eligibleKeys.push("LEVEL_10");
+  if (level >= 20) eligibleKeys.push("LEVEL_20");
+  if (resumeAttempt) eligibleKeys.push("RESUME_INTERVIEW");
+
+  if (eligibleKeys.length === 0) return;
+
+  // One round trip to get badge definitions, one to get already-earned ones —
+  // instead of 3–5 queries per badge key like the old sequential awardBadge loop
+  const [allBadges, alreadyEarned] = await Promise.all([
+    prisma.badge.findMany({ where: { key: { in: eligibleKeys } } }),
+    prisma.userBadge.findMany({
+      where: { userId, badge: { key: { in: eligibleKeys } } },
+      include: { badge: { select: { key: true } } },
+    }),
+  ]);
+
+  const earnedKeys = new Set(alreadyEarned.map((ub) => ub.badge.key));
+  const newBadges = allBadges.filter((b) => !earnedKeys.has(b.key));
+
+  if (newBadges.length === 0) return;
+
+  // Write all new badge rows in one shot, then award their combined XP once
+  // (no skipDuplicates needed — we already filtered earnedKeys above)
+  await prisma.userBadge.createMany({
+    data: newBadges.map((b) => ({ userId, badgeId: b.id })),
   });
-  if (resumeAttempt) await awardBadge(userId, "RESUME_INTERVIEW");
+
+  const totalXp = newBadges.reduce((sum, b) => sum + b.xpReward, 0);
+  if (totalXp > 0) {
+    await awardXp(userId, totalXp, XpReason.BADGE_EARNED);
+  }
 }

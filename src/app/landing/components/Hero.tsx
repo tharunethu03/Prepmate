@@ -167,6 +167,7 @@ export function Hero() {
               height={720}
               className="w-full h-auto"
               priority
+              sizes="(max-width: 768px) 100vw, 1280px"
             />
           </div>
         </FadeIn>

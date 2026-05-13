@@ -163,6 +163,7 @@ export default function SendChallengeModal({
                       height={36}
                       alt="avatar"
                       className="rounded-full"
+                      sizes="36px"
                     />
                     <div>
                       <p className="text-sm font-semibold">{f.name}</p>
@@ -260,6 +261,7 @@ export default function SendChallengeModal({
                   height={40}
                   alt="avatar"
                   className="rounded-full"
+                  sizes="40px"
                 />
                 <div>
                   <p className="text-xs text-secondary">Challenging</p>

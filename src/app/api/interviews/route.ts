@@ -140,6 +140,8 @@ export async function GET(req: Request) {
     const following = searchParams.get("following");
     const popular = searchParams.get("popular");
     const creators = searchParams.get("creators");
+    // When set, interviews from this field are surfaced first (page 1 only)
+    const field = searchParams.get("field");
 
     if (creators === "true") {
       where.visibility = "public";
@@ -195,27 +197,36 @@ export async function GET(req: Request) {
       where.visibility = "public";
     }
 
+    const orderByClause =
+      trending === "true"
+        ? { attempts: { _count: "desc" as const } }
+        : popular === "true"
+          ? { likes: { _count: "desc" as const } }
+          : { createdAt: "desc" as const };
+
+    // When a field is requested on page 1, fetch 2× the limit so we can
+    // pull field-matched interviews to the front without missing any
+    const fetchLimit = field && page === 1 ? limit * 2 : limit;
+    const fetchSkip = field && page === 1 ? 0 : (page - 1) * limit;
+
     const interviews = await prisma.interview.findMany({
       where,
-      orderBy:
-        trending === "true"
-          ? { attempts: { _count: "desc" } }
-          : popular === "true"
-            ? { likes: { _count: "desc" } }
-            : { createdAt: "desc" },
+      orderBy: orderByClause,
       include: {
         creator: { select: { id: true, name: true, avatar: true } },
-        // Show avatars of first 5 people who attempted
+        // Fetch up to 20 recent attemptees so we can deduplicate down to 5 unique avatars —
+        // without a take limit a popular interview could return thousands of rows here
         attempts: {
           where: { status: "SUBMITTED" },
           include: { user: { select: { id: true, avatar: true } } },
           orderBy: { startedAt: "desc" },
+          take: 20,
         },
         questions: {
           orderBy: { order: "asc" },
           select: { id: true, question: true, answer: true, keywords: true },
         },
-        _count: { select: { attempts: true, likes: true } }, // was: candidates
+        _count: { select: { attempts: true, likes: true } },
         likes: {
           where: session ? { userId: session.user.id } : undefined,
           select: { id: true },
@@ -224,11 +235,21 @@ export async function GET(req: Request) {
           ? { where: { userId: session.user.id }, select: { id: true } }
           : false,
       },
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: fetchSkip,
+      take: fetchLimit,
     });
 
-    const formatted = interviews.map((i) => {
+    // Sort field-matched interviews first when a field is requested on page 1 —
+    // field-matched come first, everything else fills the rest of the page
+    const sortedInterviews =
+      field && page === 1
+        ? [
+            ...interviews.filter((i) => i.creatorField === field),
+            ...interviews.filter((i) => i.creatorField !== field),
+          ].slice(0, limit)
+        : interviews;
+
+    const formatted = sortedInterviews.map((i) => {
       // Deduplicate attemptees per interview
       const seenUserIds = new Set<string>();
       const uniqueAttemptees = i.attempts
@@ -249,6 +270,7 @@ export async function GET(req: Request) {
         questionCount: i.questionCount,
         createdBy: i.createdBy,
         description: i.description,
+        creatorField: i.creatorField,
         likes: i._count.likes,
         isLiked: session ? i.likes.length > 0 : false,
         isSaved: session ? (i.savedInterviews?.length ?? 0) > 0 : false,

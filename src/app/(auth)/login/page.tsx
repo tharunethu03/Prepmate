@@ -16,7 +16,7 @@ export default function LoginPage() {
         height={600}
         className="object-contain hidden md:block"
         priority
-        unoptimized
+        sizes="600px"
       />
       <div className="flex-col justify-center">
         <div className="flex-col items-start">

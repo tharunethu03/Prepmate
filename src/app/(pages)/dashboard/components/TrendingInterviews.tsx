@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Interview } from "@/app/types/interview";
 import InterviewModal from "@/components/ui/interview-modal";
 import { Button } from "@/components/ui/button";
@@ -11,16 +12,20 @@ export default function TrendingInterviews({
 }: {
   onPreview: (i: Interview) => void;
 }) {
+  const { data: session } = useSession();
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/interviews?visibility=public&trending=true&limit=3")
+    // Pass the user's field so the API can surface matching interviews first
+    const field = session?.user?.field;
+    const url = `/api/interviews?visibility=public&trending=true&limit=6${field ? `&field=${encodeURIComponent(field)}` : ""}`;
+    fetch(url)
       .then((r) => r.json())
       .then((d) => setInterviews(d.interviews ?? []))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [session?.user?.field]);
 
   if (!loading && interviews.length === 0) return null;
 

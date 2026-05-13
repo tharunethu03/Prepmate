@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import React, { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Loader2, UserCheck, UserPlus } from "lucide-react";
 import Image from "next/image";
@@ -39,6 +40,7 @@ const SORT_OPTIONS = [
 
 const ExplorePage = () => {
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
 
   // Dashboard quick-links pass query params like ?trending=true to pre-set the sort filter
   const initialSort =
@@ -103,6 +105,9 @@ const ExplorePage = () => {
     if (f.sort === "trending") params.set("trending", "true");
     if (f.sort === "popular") params.set("popular", "true");
     if (f.sort === "following") params.set("following", "true");
+    // Pass the user's field on page 1 so field-matched interviews bubble up first
+    const userField = session?.user?.field;
+    if (userField && p === 1) params.set("field", userField);
     return `/api/interviews?${params.toString()}`;
   };
 
@@ -144,7 +149,9 @@ const ExplorePage = () => {
         setLoadingMore(false);
       }
     },
-    [],
+    // Re-create when field changes so buildUrl picks up the new value
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [session?.user?.field],
   );
 
   useEffect(() => {
@@ -311,6 +318,7 @@ const ExplorePage = () => {
                   height={64}
                   alt="avatar"
                   className="rounded-full"
+                  sizes="64px"
                 />
                 <div>
                   <p className="font-semibold">{c.name ?? "Creator"}</p>

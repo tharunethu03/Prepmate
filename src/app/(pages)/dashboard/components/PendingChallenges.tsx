@@ -68,6 +68,7 @@ export default function PendingChallenges() {
                 height={36}
                 alt="avatar"
                 className="rounded-full"
+                sizes="36px"
               />
               <div>
                 <p className="text-sm font-semibold">

@@ -41,4 +41,7 @@ export type Interview = {
     name: string | null;
     avatar: string | null;
   };
+
+  // Field of the creator who made this interview — used for field-priority sorting
+  creatorField?: string | null;
 };

@@ -76,6 +76,7 @@ export default function DiscoverCreators() {
                 height={56}
                 alt="avatar"
                 className="rounded-full hover:opacity-80 transition-opacity"
+                sizes="56px"
               />
             </Link>
             <div>

@@ -161,7 +161,8 @@ const Header = () => {
                 width={80}
                 height={80}
                 alt="AVATAR"
-                className="rounded-full "
+                className="rounded-full"
+                sizes="80px"
               />
             </motion.button>
           </div>

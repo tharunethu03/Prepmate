@@ -16,7 +16,7 @@ export default function FollowingFeed({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/interviews?following=true&limit=3")
+    fetch("/api/interviews?following=true&limit=6")
       .then((r) => r.json())
       .then((d) => setInterviews(d.interviews ?? []))
       .catch(console.error)
