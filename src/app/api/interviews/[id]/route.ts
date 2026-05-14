@@ -112,7 +112,17 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await prisma.interview.delete({ where: { id } });
+    // MongoDB doesn't cascade deletes automatically, so we have to remove all
+    // child records that reference this interview before deleting it.
+    // Order matters: QuestionResponse → InterviewAttempt (via Prisma cascade),
+    // then the rest, then the interview itself (Question cascades automatically).
+    await prisma.$transaction([
+      prisma.interviewAttempt.deleteMany({ where: { interviewId: id } }),
+      prisma.like.deleteMany({ where: { interviewId: id } }),
+      prisma.savedInterview.deleteMany({ where: { interviewId: id } }),
+      prisma.challenge.deleteMany({ where: { interviewId: id } }),
+      prisma.interview.delete({ where: { id } }),
+    ]);
 
     return NextResponse.json(
       { message: "Interview deleted successfully" },
